@@ -1,0 +1,120 @@
+from django.db import models
+from django.contrib.auth.models import User
+
+
+class Servicio(models.Model):
+    """
+    Catálogo de servicios del barbero.
+    El barbero puede gestionar esto desde el admin de Django.
+    """
+    nombre = models.CharField(max_length=100)
+    precio = models.IntegerField(help_text="Precio en pesos colombianos")
+    duracion_minutos = models.IntegerField(help_text="Duración del servicio en minutos")
+    activo = models.BooleanField(default=True, help_text="Si está en False, no aparece al cliente")
+
+    class Meta:
+        verbose_name = "Servicio"
+        verbose_name_plural = "Servicios"
+        ordering = ['nombre']
+
+    def __str__(self):
+        return f"{self.nombre} — ${self.precio:,} ({self.duracion_minutos} min)"
+
+
+class BloqueoDia(models.Model):
+    """
+    El barbero puede bloquear un día completo (vacaciones, imprevistos, etc.)
+    """
+    fecha = models.DateField(unique=True)
+    motivo = models.CharField(max_length=200, blank=True, help_text="Opcional: razón del bloqueo")
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Bloqueo de día"
+        verbose_name_plural = "Bloqueos de días"
+        ordering = ['fecha']
+
+    def __str__(self):
+        return f"Bloqueado: {self.fecha} — {self.motivo or 'Sin motivo especificado'}"
+
+
+class Cita(models.Model):
+    """
+    Cita agendada por un cliente.
+
+    La cita guarda los datos del cliente directamente (nombre, teléfono, etc.)
+    para soportar tanto clientes registrados como no registrados.
+    Si el cliente tiene cuenta, se vincula con 'usuario' (opcional).
+    """
+
+    class Estado(models.TextChoices):
+        PENDIENTE  = 'PENDIENTE',  'Pendiente'
+        CONFIRMADA = 'CONFIRMADA', 'Confirmada'
+        RECHAZADA  = 'RECHAZADA',  'Rechazada'
+        CANCELADA  = 'CANCELADA',  'Cancelada'
+        COMPLETADA = 'COMPLETADA', 'Completada'
+
+    # Vínculo opcional con usuario registrado
+    usuario = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='citas',
+        help_text="Si el cliente tiene cuenta, se vincula aquí. Opcional."
+    )
+
+    # Datos del cliente (siempre se guardan, con o sin cuenta)
+    cliente_nombre    = models.CharField(max_length=150)
+    cliente_telefono  = models.CharField(max_length=20)
+    cliente_correo    = models.EmailField()
+    cliente_direccion = models.TextField(help_text="Dirección donde el barbero va a atender")
+
+    # Servicio y horario
+    servicio    = models.ForeignKey(Servicio, on_delete=models.PROTECT, related_name='citas')
+    fecha       = models.DateField()
+    hora_inicio = models.TimeField()
+    hora_fin    = models.TimeField()  # Se calcula automáticamente al guardar
+
+    # Estado de la cita
+    estado = models.CharField(
+        max_length=20,
+        choices=Estado.choices,
+        default=Estado.PENDIENTE
+    )
+
+    # Campos de auditoría
+    creada_en        = models.DateTimeField(auto_now_add=True)
+    actualizada_en   = models.DateTimeField(auto_now=True)
+
+    # Notas adicionales del cliente (opcional)
+    notas = models.TextField(blank=True, help_text="Indicaciones especiales del cliente")
+
+    class Meta:
+        verbose_name = "Cita"
+        verbose_name_plural = "Citas"
+        ordering = ['fecha', 'hora_inicio']
+        # Evita citas duplicadas en el mismo horario
+        constraints = [
+            models.UniqueConstraint(
+                fields=['fecha', 'hora_inicio'],
+                condition=~models.Q(estado__in=['RECHAZADA', 'CANCELADA']),
+                name='unique_cita_activa_por_horario'
+            )
+        ]
+
+    def save(self, *args, **kwargs):
+        """Calcula hora_fin automáticamente basándose en la duración del servicio."""
+        from datetime import datetime, timedelta
+        if self.hora_inicio and self.servicio_id:
+            inicio = datetime.combine(self.fecha, self.hora_inicio)
+            fin = inicio + timedelta(minutes=self.servicio.duracion_minutos)
+            self.hora_fin = fin.time()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return (
+            f"{self.cliente_nombre} — {self.servicio.nombre} "
+            f"el {self.fecha} a las {self.hora_inicio.strftime('%H:%M')} "
+            f"[{self.get_estado_display()}]"
+        )

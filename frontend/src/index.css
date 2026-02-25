@@ -1,0 +1,339 @@
+/* ================================================================
+   JIMBAR — Sistema de Diseño Global
+   Tema oscuro. Inspiración: Calendly, clean, mobile-first.
+   ================================================================ */
+
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ── Variables de color y espaciado ─────────────────────────── */
+:root {
+  /* Fondo */
+  --bg-base:       #0a0a0a;
+  --bg-surface:    #111111;
+  --bg-elevated:   #1a1a1a;
+  --bg-hover:      #222222;
+
+  /* Bordes */
+  --border:        #2a2a2a;
+  --border-focus:  #444444;
+
+  /* Texto */
+  --text-primary:   #f5f5f5;
+  --text-secondary: #888888;
+  --text-muted:     #555555;
+
+  /* Acento — dorado suave, acorde con barbería */
+  --accent:         #c9a84c;
+  --accent-hover:   #e0bc6a;
+  --accent-muted:   rgba(201, 168, 76, 0.12);
+
+  /* Estados */
+  --success:       #4caf7d;
+  --error:         #e05c5c;
+  --warning:       #e0a84c;
+  --info:          #5c9be0;
+
+  /* Estados de cita */
+  --state-pending:   #e0a84c;
+  --state-confirmed: #4caf7d;
+  --state-rejected:  #e05c5c;
+  --state-cancelled: #888888;
+  --state-completed: #5c9be0;
+
+  /* Espaciado */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Radio de bordes */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* Sombras */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.5);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.6);
+
+  /* Transiciones */
+  --transition: 0.2s ease;
+}
+
+/* ── Reset y base ───────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  line-height: 1.6;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Tipografía ─────────────────────────────────────────────── */
+h1 { font-size: 1.75rem; font-weight: 700; line-height: 1.2; }
+h2 { font-size: 1.4rem;  font-weight: 600; line-height: 1.3; }
+h3 { font-size: 1.1rem;  font-weight: 600; }
+h4 { font-size: 1rem;    font-weight: 500; }
+
+p  { color: var(--text-secondary); }
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: color var(--transition);
+}
+a:hover { color: var(--accent-hover); }
+
+/* ── Layout contenedor ──────────────────────────────────────── */
+.container {
+  width: 100%;
+  max-width: 480px;    /* Mobile-first: ancho máximo para pantalla de agendamiento */
+  margin: 0 auto;
+  padding: 0 var(--space-5);
+}
+
+.container--wide {
+  max-width: 900px;    /* Para el panel del barbero en desktop */
+  margin: 0 auto;
+  padding: 0 var(--space-5);
+}
+
+/* ── Tarjetas (cards) ───────────────────────────────────────── */
+.card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  transition: border-color var(--transition);
+}
+
+.card--clickable {
+  cursor: pointer;
+}
+.card--clickable:hover {
+  border-color: var(--accent);
+  background: var(--bg-elevated);
+}
+.card--selected {
+  border-color: var(--accent) !important;
+  background: var(--accent-muted) !important;
+}
+
+/* ── Botones ────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  padding: var(--space-3) var(--space-6);
+  transition: all var(--transition);
+  white-space: nowrap;
+  width: 100%;
+  min-height: 48px;  /* Área táctil cómoda en móvil */
+}
+
+.btn--primary {
+  background: var(--accent);
+  color: #0a0a0a;
+}
+.btn--primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(201, 168, 76, 0.3);
+}
+
+.btn--secondary {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+.btn--secondary:hover:not(:disabled) {
+  border-color: var(--border-focus);
+  background: var(--bg-hover);
+}
+
+.btn--danger {
+  background: transparent;
+  color: var(--error);
+  border: 1px solid var(--error);
+}
+.btn--danger:hover:not(:disabled) {
+  background: rgba(224, 92, 92, 0.1);
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  width: auto;
+  padding: var(--space-2) var(--space-3);
+}
+.btn--ghost:hover { color: var(--text-primary); }
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn--sm {
+  min-height: 36px;
+  padding: var(--space-2) var(--space-4);
+  font-size: 0.875rem;
+}
+
+/* ── Inputs y formularios ───────────────────────────────────── */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.form-input {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 1rem;
+  padding: var(--space-3) var(--space-4);
+  min-height: 48px;
+  transition: border-color var(--transition);
+  width: 100%;
+}
+.form-input::placeholder { color: var(--text-muted); }
+.form-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.form-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.form-error {
+  font-size: 0.8125rem;
+  color: var(--error);
+}
+
+/* ── Badges de estado de cita ───────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+}
+.badge--pendiente  { background: rgba(224,168,76,0.15); color: var(--state-pending); }
+.badge--confirmada { background: rgba(76,175,125,0.15); color: var(--state-confirmed); }
+.badge--rechazada  { background: rgba(224,92,92,0.15);  color: var(--state-rejected); }
+.badge--cancelada  { background: rgba(136,136,136,0.15);color: var(--state-cancelled); }
+.badge--completada { background: rgba(92,155,224,0.15); color: var(--state-completed); }
+
+/* ── Separadores ────────────────────────────────────────────── */
+.divider {
+  height: 1px;
+  background: var(--border);
+  border: none;
+  margin: var(--space-6) 0;
+}
+
+/* ── Texto de ayuda ─────────────────────────────────────────── */
+.text-sm      { font-size: 0.875rem; }
+.text-xs      { font-size: 0.75rem; }
+.text-muted   { color: var(--text-muted); }
+.text-accent  { color: var(--accent); }
+.text-success { color: var(--success); }
+.text-error   { color: var(--error); }
+.text-center  { text-align: center; }
+
+/* ── Utilidades de espaciado ────────────────────────────────── */
+.mt-2  { margin-top: var(--space-2); }
+.mt-4  { margin-top: var(--space-4); }
+.mt-6  { margin-top: var(--space-6); }
+.mt-8  { margin-top: var(--space-8); }
+.mb-4  { margin-bottom: var(--space-4); }
+.mb-6  { margin-bottom: var(--space-6); }
+.gap-3 { gap: var(--space-3); }
+.gap-4 { gap: var(--space-4); }
+
+/* ── Spinner de carga ───────────────────────────────────────── */
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--space-12);
+}
+
+/* ── Mensaje de error/éxito ─────────────────────────────────── */
+.alert {
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-md);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+.alert--error   { background: rgba(224,92,92,0.1);  border: 1px solid rgba(224,92,92,0.3);  color: var(--error); }
+.alert--success { background: rgba(76,175,125,0.1); border: 1px solid rgba(76,175,125,0.3); color: var(--success); }
+.alert--info    { background: rgba(92,155,224,0.1); border: 1px solid rgba(92,155,224,0.3); color: var(--info); }
+
+/* ── Animaciones ────────────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in { animation: fadeIn 0.25s ease forwards; }
+
+/* ── Responsive: tablet y desktop ───────────────────────────── */
+@media (min-width: 640px) {
+  h1 { font-size: 2rem; }
+  .container { padding: 0 var(--space-8); }
+}

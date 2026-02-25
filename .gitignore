@@ -1,0 +1,25 @@
+# ==========================================
+# JIMBAR — .gitignore raíz del proyecto
+# ==========================================
+
+# ── Backend ───────────────────────────────
+backend/venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/**/*.pyc
+backend/.env
+backend/staticfiles/
+backend/media/
+backend/db.sqlite3
+
+# ── Frontend ──────────────────────────────
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+
+# ── Editores y OS ─────────────────────────
+.vscode/
+.idea/
+*.DS_Store
+Thumbs.db
