@@ -6,8 +6,10 @@
  * - Servicios y horarios
  * - 3 CTAs: Agendar sin cuenta / Iniciar sesión / Registrarse
  */
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { Scissors, Fingerprint, Sparkles, User, Star } from 'lucide-react';
+
 
 const SERVICIOS = [
     { nombre: 'Corte de cabello', precio: '$10.000', duracion: '45 min', icono: <Scissors size={18} /> },
@@ -19,6 +21,16 @@ const SERVICIOS = [
 
 export default function LandingPage() {
     const navigate = useNavigate();
+    const { authenticated, role } = useAuth();
+
+    // Si ya hay sesión activa, redirigir al dashboard respectivo
+    if (authenticated) {
+        if (role === 'barbero') {
+            return <Navigate to="/barbero/citas" replace />;
+        } else {
+            return <Navigate to="/agendar" replace />;
+        }
+    }
 
     return (
         <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>

@@ -5,10 +5,11 @@
  */
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import api from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 
 export default function ClienteLoginPage() {
     const navigate = useNavigate();
+    const { login } = useAuth();
     const [form, setForm] = useState({ email: '', password: '' });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -18,14 +19,9 @@ export default function ClienteLoginPage() {
         setError('');
         setLoading(true);
         try {
-            const { data } = await api.post('/auth/token/', {
-                username: form.email.toLowerCase(),
-                password: form.password,
-            });
-            localStorage.setItem('access_token', data.access);
-            localStorage.setItem('refresh_token', data.refresh);
+            await login(form.email.toLowerCase(), form.password, 'cliente');
             // Después del login, el cliente vuelve a agendar
-            navigate('/agendar');
+            navigate('/agendar', { replace: true });
         } catch {
             setError('Correo o contraseña incorrectos.');
         } finally {
@@ -47,7 +43,7 @@ export default function ClienteLoginPage() {
                 {/* Volver */}
                 <button
                     className="btn btn--ghost"
-                    onClick={() => navigate('/')}
+                    onClick={() => navigate(-1)}
                     style={{ marginBottom: '24px', paddingLeft: 0 }}
                 >
                     ← Volver

@@ -8,6 +8,7 @@
  *  4. Confirmación
  */
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PasoServicio from '../components/agendar/PasoServicio';
 import PasoFechaHora from '../components/agendar/PasoFechaHora';
 import PasoDatos from '../components/agendar/PasoDatos';
@@ -18,6 +19,7 @@ const PASOS = ['Servicio', 'Fecha y hora', 'Tus datos', 'Confirmación'];
 import { Check } from 'lucide-react';
 
 export default function AgendarPage() {
+    const navigate = useNavigate();
     const [paso, setPaso] = useState(0);
     const [seleccion, setSeleccion] = useState({
         servicio: null,     // { id, nombre, precio, duracion_minutos }
@@ -43,7 +45,15 @@ export default function AgendarPage() {
                 marginBottom: '32px',
             }}>
                 <div className="container">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <button
+                            className="btn btn--ghost"
+                            onClick={() => navigate(-1)}
+                            style={{ padding: '0 8px', fontSize: '1.25rem' }}
+                            title="Volver"
+                        >
+                            ←
+                        </button>
                         <span style={{
                             fontSize: '1.5rem',
                             fontWeight: 700,

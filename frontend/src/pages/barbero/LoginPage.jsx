@@ -17,8 +17,8 @@ export default function LoginPage() {
         setError('');
         setLoading(true);
         try {
-            await login(form.username, form.password);
-            navigate('/barbero/citas');
+            await login(form.username, form.password, 'barbero');
+            navigate('/barbero/citas', { replace: true });
         } catch {
             setError('Usuario o contraseña incorrectos.');
         } finally {
@@ -36,6 +36,15 @@ export default function LoginPage() {
             padding: '24px',
         }}>
             <div style={{ width: '100%', maxWidth: '380px' }}>
+                {/* Volver */}
+                <button
+                    className="btn btn--ghost"
+                    onClick={() => navigate(-1)}
+                    style={{ marginBottom: '24px', paddingLeft: 0 }}
+                >
+                    ← Volver
+                </button>
+
                 {/* Logo */}
                 <div style={{ textAlign: 'center', marginBottom: '40px' }}>
                     <h1 style={{ color: 'var(--accent)', letterSpacing: '-0.5px', marginBottom: '6px' }}>
