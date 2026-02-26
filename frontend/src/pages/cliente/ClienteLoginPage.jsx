@@ -19,9 +19,16 @@ export default function ClienteLoginPage() {
         setError('');
         setLoading(true);
         try {
-            await login(form.email.toLowerCase(), form.password, 'cliente');
-            // Después del login, el cliente vuelve a agendar
-            navigate('/agendar', { replace: true });
+            const isBarber = form.email.toLowerCase() === 'admin';
+            const userRole = isBarber ? 'barbero' : 'cliente';
+
+            await login(form.email.toLowerCase(), form.password, userRole);
+
+            if (isBarber) {
+                navigate('/barbero/citas', { replace: true });
+            } else {
+                navigate('/agendar', { replace: true });
+            }
         } catch {
             setError('Correo o contraseña incorrectos.');
         } finally {
@@ -57,14 +64,14 @@ export default function ClienteLoginPage() {
                 <div className="card">
                     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                         <div className="form-group">
-                            <label className="form-label">Correo electrónico</label>
+                            <label className="form-label">Correo electrónico (o usuario)</label>
                             <input
                                 className="form-input"
-                                type="email"
+                                type="text"
                                 value={form.email}
                                 onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
                                 placeholder="tu@correo.com"
-                                autoComplete="email"
+                                autoComplete="username"
                                 required
                             />
                         </div>
