@@ -123,19 +123,41 @@ def enviar_correo_cancelacion_cliente(cita_id):
     _enviar(
         asunto=f"[Jimbar] Cita cancelada — {cita.cliente_nombre}",
         mensaje=mensaje,
-        destinatarios=[settings.BARBER_EMAIL],
     )
-
 
 import json
 import urllib.request
 from django.core.mail import send_mail
 from django.conf import settings
+import logging
+
+logger = logging.getLogger(__name__)
 
 def _enviar(asunto, mensaje, destinatarios):
     """Función base de envío. Captura cualquier error sin romper el flujo."""
+    # 1. Intento por Google Apps Script (Nuestra opción maestra)
+    apps_script_url = getattr(settings, 'GOOGLE_APPS_SCRIPT_URL', None)
+    if apps_script_url:
+        for dest in destinatarios:
+            try:
+                payload = {
+                    "to": dest,
+                    "subject": asunto,
+                    "body": mensaje
+                }
+                req = urllib.request.Request(
+                    apps_script_url, 
+                    data=json.dumps(payload).encode('utf-8'), 
+                    headers={"Content-Type": "application/json"}
+                )
+                with urllib.request.urlopen(req) as response:
+                    logger.info(f"Email enviado vía Google Apps Script a {dest}: {response.status}")
+            except Exception as e:
+                logger.error(f"Error enviando vía Apps Script a {dest}: {e}")
+        return
+
+    # 2. Intento por Brevo
     brevo_key = getattr(settings, 'BREVO_API_KEY', None)
-    
     if brevo_key:
         try:
             url = "https://api.brevo.com/v3/smtp/email"
@@ -157,20 +179,20 @@ def _enviar(asunto, mensaje, destinatarios):
                 logger.info(f"Email HTTP enviado vía Brevo: {asunto} → {destinatarios} Status: {response.status}")
         except Exception as e:
             logger.error(f"Error enviando email vía Brevo API: {e}")
+        return
             
-    else:
-        # Fallback al SMTP clásico (No funcionará en Railway Free por bloqueo del 587)
-        if not settings.EMAIL_HOST_USER:
-            logger.info(f"Email no configurado. Se omite: {asunto}")
-            return
-        try:
-            send_mail(
-                subject=asunto,
-                message=mensaje,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=destinatarios,
-                fail_silently=False,
-            )
-            logger.info(f"Email enviado: {asunto} → {destinatarios}")
-        except Exception as e:
-            logger.error(f"Error enviando email '{asunto}': {e}")
+    # 3. Fallback al SMTP clásico (Bloqueado en Railway Free)
+    if not settings.EMAIL_HOST_USER:
+        logger.info(f"Email no configurado. Se omite: {asunto}")
+        return
+    try:
+        send_mail(
+            subject=asunto,
+            message=mensaje,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=destinatarios,
+            fail_silently=False,
+        )
+        logger.info(f"Email enviado: {asunto} → {destinatarios}")
+    except Exception as e:
+        logger.error(f"Error enviando email '{asunto}': {e}")
