@@ -7,6 +7,7 @@ Documentación: https://docs.djangoproject.com/en/5.0/topics/settings/
 from pathlib import Path
 from datetime import timedelta
 import os
+import dj_database_url
 from dotenv import load_dotenv
 
 # Carga las variables del archivo .env
@@ -20,7 +21,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ============================================================
 SECRET_KEY = os.getenv('SECRET_KEY', 'clave-insegura-solo-para-desarrollo')
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173').split(',')
 
 
 # ============================================================
@@ -47,6 +49,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', # Sirve archivos estáticos en prod
     'corsheaders.middleware.CorsMiddleware',  # Debe ir antes de CommonMiddleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -80,15 +83,13 @@ WSGI_APPLICATION = 'jimbar.wsgi.application'
 # ============================================================
 # BASE DE DATOS — PostgreSQL
 # ============================================================
+# Usamos dj_database_url para poder parsear la URL que nos da Railway
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'jimbar_db'),
-        'USER': os.getenv('DB_USER', 'postgres'),
-        'PASSWORD': os.getenv('DB_PASSWORD', ''),
-        'HOST': os.getenv('DB_HOST', 'localhost'),
-        'PORT': os.getenv('DB_PORT', '5432'),
-    }
+    'default': dj_database_url.config(
+        default=os.getenv('DATABASE_URL', f"postgres://{os.getenv('DB_USER', 'postgres')}:{os.getenv('DB_PASSWORD', '')}@{os.getenv('DB_HOST', 'localhost')}:{os.getenv('DB_PORT', '5432')}/{os.getenv('DB_NAME', 'jimbar_db')}"),
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 
@@ -147,8 +148,9 @@ SIMPLE_JWT = {
 
 
 # ============================================================
-# CORS — Permite peticiones desde React (localhost:5173 = Vite)
+# CORS — Permite peticiones desde React (localhost:5173 = Vite o frontend en Vercel)
 # ============================================================
+CORS_ALLOW_ALL_ORIGINS = True # Para simplificar el despliegue de frontend luego
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',
     'http://127.0.0.1:5173',
