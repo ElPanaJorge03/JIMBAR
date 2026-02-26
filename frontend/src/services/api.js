@@ -8,7 +8,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api',
+    baseURL: import.meta.env.VITE_API_URL || 'https://jimbar-production.up.railway.app/api',
     headers: { 'Content-Type': 'application/json' },
 });
 
@@ -34,7 +34,7 @@ api.interceptors.response.use(
             if (refresh) {
                 try {
                     const { data } = await axios.post(
-                        `${original.baseURL || 'http://127.0.0.1:8000/api'}/auth/token/refresh/`,
+                        `${original.baseURL || 'https://jimbar-production.up.railway.app/api'}/auth/token/refresh/`,
                         { refresh }
                     );
                     localStorage.setItem('access_token', data.access);

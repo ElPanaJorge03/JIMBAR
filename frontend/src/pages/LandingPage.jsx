@@ -6,6 +6,7 @@
  * - Servicios y horarios
  * - 3 CTAs: Agendar sin cuenta / Iniciar sesión / Registrarse
  */
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Scissors, Fingerprint, Sparkles, User, Star } from 'lucide-react';
 
