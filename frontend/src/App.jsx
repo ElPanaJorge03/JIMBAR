@@ -33,7 +33,7 @@ export default function App() {
           <Route
             path="/cliente/citas"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['cliente']}>
                 <DashboardCliente />
               </ProtectedRoute>
             }
@@ -44,7 +44,7 @@ export default function App() {
           <Route
             path="/barbero/citas"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['barbero']}>
                 <CitasPage />
               </ProtectedRoute>
             }

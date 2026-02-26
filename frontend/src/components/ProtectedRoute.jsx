@@ -10,11 +10,16 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-export default function ProtectedRoute({ children }) {
-    const { authenticated } = useAuth();
+export default function ProtectedRoute({ children, allowedRoles = [] }) {
+    const { authenticated, role } = useAuth();
 
     if (!authenticated) {
-        return <Navigate to="/barbero/login" replace />;
+        return <Navigate to="/login" replace />;
+    }
+
+    if (allowedRoles.length > 0 && !allowedRoles.includes(role)) {
+        // Logueado pero sin permiso para esta ruta
+        return <Navigate to="/" replace />;
     }
 
     return children;
