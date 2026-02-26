@@ -45,6 +45,22 @@ def enviar_correo_nueva_cita(cita_id):
         destinatarios=[settings.BARBER_EMAIL],
     )
 
+    # Notificar al cliente que su solicitud fue recibida
+    mensaje_cliente = (
+        f"Hola {cita.cliente_nombre},\n\n"
+        f"Hemos recibido tu solicitud de cita para el servicio de '{cita.servicio.nombre}'.\n\n"
+        f"Detalles:\n"
+        f"Fecha: {cita.fecha.strftime('%d/%m/%Y')}\n"
+        f"Hora: {cita.hora_inicio.strftime('%H:%M')}\n\n"
+        f"El barbero revisará tu solicitud y te confirmará por este mismo medio en breve.\n\n"
+        f"¡Gracias por preferir Jimbar!"
+    )
+    _enviar(
+        asunto=f"[Jimbar] Solicitud de cita en revisión ⏳",
+        mensaje=mensaje_cliente,
+        destinatarios=[cita.cliente_correo],
+    )
+
 
 def enviar_correo_estado_cita(cita_id, nuevo_estado):
     """Notifica al cliente cuando el barbero cambia el estado de su cita."""
@@ -70,6 +86,14 @@ def enviar_correo_estado_cita(cita_id, nuevo_estado):
             f"Lamentablemente tu cita del {cita.fecha.strftime('%d/%m/%Y')} "
             f"a las {cita.hora_inicio.strftime('%H:%M')} no pudo ser atendida.\n\n"
             f"Puedes agendar una nueva cita en otro horario disponible."
+        )
+    elif nuevo_estado == 'COMPLETADA':
+        asunto = "[Jimbar] ¡Gracias por tu visita! 💇‍♂️"
+        mensaje = (
+            f"Hola {cita.cliente_nombre},\n\n"
+            f"Tu cita ha sido marcada como completada. Esperamos "
+            f"que te haya encantado el servicio de '{cita.servicio.nombre}'.\n\n"
+            f"¡Vuelve pronto a Jimbar!"
         )
     else:
         return
