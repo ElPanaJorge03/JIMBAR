@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 // Páginas públicas
 import LandingPage from './pages/LandingPage';
 import AgendarPage from './pages/AgendarPage';
+import CancelarPage from './pages/cliente/CancelarPage';
 import ClienteLoginPage from './pages/cliente/ClienteLoginPage';
 import RegistroPage from './pages/cliente/RegistroPage';
 
@@ -23,6 +24,7 @@ export default function App() {
 
           {/* Flujo de agendamiento (con o sin cuenta) */}
           <Route path="/agendar" element={<AgendarPage />} />
+          <Route path="/cancelar/:id" element={<CancelarPage />} />
 
           {/* Cuenta de cliente */}
           <Route path="/login" element={<ClienteLoginPage />} />

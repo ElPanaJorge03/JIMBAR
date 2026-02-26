@@ -155,7 +155,8 @@ class CitaCreateView(generics.CreateAPIView):
             cita.save()
 
         # Notificar al barbero en background (si falla el email, la cita ya se guardó)
-        _en_background(enviar_correo_nueva_cita, cita.id)
+        origen_url = self.request.META.get('HTTP_ORIGIN', '')
+        _en_background(enviar_correo_nueva_cita, cita.id, origen_url)
 
 
 class CitaCancelarView(APIView):

@@ -4,11 +4,12 @@
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
 import { Check } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 dayjs.locale('es');
 
 export default function PasoConfirmacion({ seleccion, onNuevaCita }) {
-    const { servicio, fecha, slot, datos } = seleccion;
+    const { servicio, fecha, slot, datos, citaCreada } = seleccion;
 
     const fechaFormateada = dayjs(fecha).format('dddd D [de] MMMM [de] YYYY');
 
@@ -61,8 +62,13 @@ export default function PasoConfirmacion({ seleccion, onNuevaCita }) {
             </div>
 
             <div className="alert alert--info" style={{ marginBottom: '24px', textAlign: 'left' }}>
-                <strong>¿Necesitas cancelar?</strong> Puedes hacerlo desde la app con más de
-                2 horas de anticipación. Con menos de 2 horas, contacta directamente al barbero.
+                <strong>¿Necesitas cancelar?</strong> Puedes hacerlo con más de 2 horas de anticipación.{' '}
+                {citaCreada?.id && (
+                    <Link to={`/cancelar/${citaCreada.id}`} style={{ color: 'var(--accent)', textDecoration: 'underline' }}>
+                        Haz clic aquí para cancelar
+                    </Link>
+                )}
+                . Con menos de 2 horas, contacta directamente al barbero.
             </div>
 
             <button className="btn btn--secondary" onClick={onNuevaCita}>

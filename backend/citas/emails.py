@@ -21,8 +21,8 @@ def _get_cita(cita_id):
         return None
 
 
-def enviar_correo_nueva_cita(cita_id):
-    """Notifica al barbero cuando llega una nueva solicitud."""
+def enviar_correo_nueva_cita(cita_id, origen_url=None):
+    """Notifica al barbero cuando llega una nueva solicitud, y también al cliente enseñándole a cancelar."""
     cita = _get_cita(cita_id)
     if not cita:
         return
@@ -53,8 +53,14 @@ def enviar_correo_nueva_cita(cita_id):
         f"Fecha: {cita.fecha.strftime('%d/%m/%Y')}\n"
         f"Hora: {cita.hora_inicio.strftime('%H:%M')}\n\n"
         f"El barbero revisará tu solicitud y te confirmará por este mismo medio en breve.\n\n"
-        f"¡Gracias por preferir Jimbar!"
+        f"¿Necesitas cancelar o te equivocaste en algún dato?\n"
     )
+
+    if origen_url:
+        mensaje_cliente += f"Ingresa aquí en cualquier momento para cancelar:\n{origen_url}/cancelar/{cita_id}\n\n"
+    
+    mensaje_cliente += "¡Gracias por preferir Jimbar!"
+
     _enviar(
         asunto=f"[Jimbar] Solicitud de cita en revisión ⏳",
         mensaje=mensaje_cliente,
