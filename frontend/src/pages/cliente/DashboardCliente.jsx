@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { LogOut } from 'lucide-react';
 import api from '../../services/api';
 import dayjs from 'dayjs';
 
@@ -57,8 +58,8 @@ export default function DashboardCliente() {
                             JIMBAR
                         </span>
                     </div>
-                    <button onClick={handleLogout} className="btn btn--outline" style={{ padding: '6px 16px', fontSize: '0.875rem' }}>
-                        Cerrar sesión
+                    <button onClick={handleLogout} className="btn btn--ghost btn--sm" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <LogOut size={15} /> Salir
                     </button>
                 </div>
             </header>
