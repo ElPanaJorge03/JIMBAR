@@ -36,15 +36,41 @@ class CitaCreateSerializer(serializers.ModelSerializer):
             'notas',
         ]
 
+    def validate_cliente_nombre(self, value):
+        if len(value.strip()) < 3:
+            raise serializers.ValidationError("Por favor, ingresa un nombre válido más largo.")
+        return value
+
+    def validate_cliente_telefono(self, value):
+        if len(value.strip()) < 7:
+            raise serializers.ValidationError("Por favor, ingresa un número de teléfono válido.")
+        return value
+        
+    def validate_cliente_direccion(self, value):
+        if len(value.strip()) < 5:
+            raise serializers.ValidationError("Por favor, ingresa una dirección válida más detallada.")
+        return value
+
     def validate(self, data):
         fecha = data.get('fecha')
         hora_inicio = data.get('hora_inicio')
         servicio = data.get('servicio')
+        correo = data.get('cliente_correo')
 
         # 1. No se puede agendar en el pasado
         ahora = timezone.localtime(timezone.now())
         if fecha < ahora.date():
             raise serializers.ValidationError("No puedes agendar una cita en el pasado.")
+            
+        # Anti-spam: Máximo 3 citas por día por cliente
+        citas_cliente_hoy = Cita.objects.filter(
+            fecha=fecha,
+            cliente_correo=correo,
+            estado__in=['PENDIENTE', 'CONFIRMADA']
+        ).count()
+        
+        if citas_cliente_hoy >= 3:
+            raise serializers.ValidationError({"cliente_correo": "Has alcanzado el límite máximo de 3 citas por día."})
 
         # 2. Verificar si el día está bloqueado
         if BloqueoDia.objects.filter(fecha=fecha).exists():

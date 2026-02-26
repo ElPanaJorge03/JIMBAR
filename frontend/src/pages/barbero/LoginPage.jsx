@@ -90,6 +90,11 @@ export default function LoginPage() {
                                 'Entrar'
                             )}
                         </button>
+                        <div style={{ textAlign: 'center', marginTop: '16px' }}>
+                            <a href="/recuperar-password" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>
+                                ¿Olvidaste tu contraseña?
+                            </a>
+                        </div>
                     </form>
                 </div>
             </div>

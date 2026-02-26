@@ -97,6 +97,12 @@ export default function ClienteLoginPage() {
                                 : 'Entrar'
                             }
                         </button>
+
+                        <div style={{ textAlign: 'center', marginTop: '16px' }}>
+                            <Link to="/recuperar-password" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>
+                                ¿Olvidaste tu contraseña?
+                            </Link>
+                        </div>
                     </form>
                 </div>
 

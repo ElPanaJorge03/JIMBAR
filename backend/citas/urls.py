@@ -4,6 +4,11 @@ from . import views
 urlpatterns = [
     # ── Auth cliente ───────────────────────────────────────────
     path('auth/registro/', views.RegistroClienteView.as_view(), name='registro-cliente'),
+    
+    # ── Auth y contraseña ──────────────────────────────────────
+    path('auth/cambiar-password/', views.CambiarPasswordView.as_view(), name='cambiar-password'),
+    path('auth/recuperar-password/', views.SolicitarRestaurarPasswordView.as_view(), name='recuperar-password'),
+    path('auth/reset-password/', views.RestaurarPasswordView.as_view(), name='reset-password'),
 
     # ── Área del Cliente Autenticado ───────────────────────────
     path('cliente/citas/', views.CitaClienteListView.as_view(), name='cliente-cita-list'),

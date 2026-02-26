@@ -9,6 +9,8 @@ import CancelarPage from './pages/cliente/CancelarPage';
 import ClienteLoginPage from './pages/cliente/ClienteLoginPage';
 import RegistroPage from './pages/cliente/RegistroPage';
 import DashboardCliente from './pages/cliente/DashboardCliente';
+import RecuperarPasswordPage from './pages/auth/RecuperarPasswordPage';
+import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 
 // Páginas del barbero
 import LoginPage from './pages/barbero/LoginPage';
@@ -30,6 +32,10 @@ export default function App() {
           {/* Cuenta de cliente */}
           <Route path="/login" element={<ClienteLoginPage />} />
           <Route path="/registro" element={<RegistroPage />} />
+
+          <Route path="/recuperar-password" element={<RecuperarPasswordPage />} />
+          <Route path="/restaurar-password/:uid/:token" element={<ResetPasswordPage />} />
+
           <Route
             path="/cliente/citas"
             element={

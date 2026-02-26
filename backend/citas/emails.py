@@ -40,6 +40,32 @@ def _get_cita(cita_id):
         logger.warning(f"Email: cita {cita_id} no encontrada.")
         return None
 
+def enviar_correo_recuperar_password(email, nombre, url_reset):
+    """Envía un enlace de recuperación de contraseña."""
+    asunto = "[Jimbar] Recupera tu contraseña"
+    mensaje = (
+        f"Hola {nombre},\n\n"
+        f"Hemos recibido una solicitud para restablecer tu contraseña.\n"
+        f"Haz clic en el siguiente enlace para crear una nueva contraseña:\n\n"
+        f"{url_reset}\n\n"
+        f"Si no solicitaste este cambio, ignora este correo.\n\n"
+        f"¡Gracias!"
+    )
+    
+    btn_html = f"""
+    <div style="text-align: center; margin-top: 25px; margin-bottom: 25px;">
+        <a href="{url_reset}" style="background-color: #c9a75d; color: #111; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Restablecer Contraseña</a>
+    </div>
+    """
+    
+    html_mensaje = _generar_html(
+        "Recuperación de Contraseña",
+        mensaje.replace('\n', '<br>').replace(f"{url_reset}<br><br>", btn_html)
+    )
+    
+    _enviar(asunto=asunto, mensaje=mensaje, destinatarios=[email], html_mensaje=html_mensaje)
+
+
 def enviar_correo_nueva_cita(cita_id, origen_url=None):
     """Notifica al barbero cuando llega una nueva solicitud, y también al cliente enseñándole a cancelar."""
     cita = _get_cita(cita_id)

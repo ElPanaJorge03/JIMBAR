@@ -6,6 +6,10 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.utils import timezone
 from datetime import datetime, timedelta, time
 from django.db.models import Q
+from django.contrib.auth.models import User
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
 from .models import Servicio, Cita, BloqueoDia
 from .serializers import (
     ServicioSerializer,
@@ -45,6 +49,92 @@ class RegistroClienteView(generics.CreateAPIView):
             {'mensaje': 'Cuenta creada exitosamente.', 'correo': user.email},
             status=status.HTTP_201_CREATED
         )
+
+
+class CambiarPasswordView(APIView):
+    """
+    POST /api/auth/cambiar-password/
+    Permite al barbero o cliente cambiar su contraseña actual.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        old_password = request.data.get('old_password')
+        new_password = request.data.get('new_password')
+
+        if not old_password or not new_password:
+            return Response({'error': 'Debes proveer la contraseña actual y la nueva.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not user.check_password(old_password):
+            return Response({'error': 'La contraseña actual es incorrecta.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.set_password(new_password)
+        user.save()
+        return Response({'mensaje': 'Contraseña actualizada con éxito.'})
+
+
+class SolicitarRestaurarPasswordView(APIView):
+    """
+    POST /api/auth/recuperar-password/
+    Genera un token y envía un correo con el link de restauración.
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get('email')
+        if not email:
+            return Response({'error': 'Debes proporcionar tu correo.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
+            # Replicamos exito para no revelar si el correo existe o no
+            return Response({'mensaje': 'Si el correo existe, te enviaremos el enlace de recuperación.'})
+
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+
+        origen_url = request.META.get('HTTP_ORIGIN', '')
+        if origen_url:
+            reset_url = f"{origen_url}/restaurar-password/{uid}/{token}"
+            _en_background(
+                __import__('citas.emails').emails.enviar_correo_recuperar_password,
+                user.email,
+                user.first_name or user.username,
+                reset_url
+            )
+        
+        return Response({'mensaje': 'Si el correo existe, te enviaremos el enlace de recuperación.'})
+
+
+class RestaurarPasswordView(APIView):
+    """
+    POST /api/auth/reset-password/
+    Recepta el uid, token y la nueva contraseña para aplicarla.
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        uidb64 = request.data.get('uid')
+        token = request.data.get('token')
+        new_password = request.data.get('new_password')
+
+        if not uidb64 or not token or not new_password:
+            return Response({'error': 'Faltan datos.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            return Response({'error': 'Enlace inválido o expirado.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if default_token_generator.check_token(user, token):
+            user.set_password(new_password)
+            user.save()
+            return Response({'mensaje': 'Contraseña restablecida correctamente.'})
+        else:
+            return Response({'error': 'Enlace inválido o expirado.'}, status=status.HTTP_400_BAD_REQUEST)
 
 # ============================================================
 # VISTAS PÚBLICAS (sin autenticación)
