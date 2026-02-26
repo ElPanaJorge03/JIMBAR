@@ -2,6 +2,10 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    # ── Auth cliente ───────────────────────────────────────────
+    path('auth/registro/', views.RegistroClienteView.as_view(), name='registro-cliente'),
+
+
     # ── Públicas ──────────────────────────────────────────────
     # Lista de servicios disponibles
     path('servicios/', views.ServicioListView.as_view(), name='servicio-list'),

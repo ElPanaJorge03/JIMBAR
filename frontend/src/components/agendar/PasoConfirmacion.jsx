@@ -3,6 +3,7 @@
  */
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
+import { Check } from 'lucide-react';
 
 dayjs.locale('es');
 
@@ -23,10 +24,10 @@ export default function PasoConfirmacion({ seleccion, onNuevaCita }) {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '2rem',
+                color: 'var(--success)',
                 margin: '0 auto 24px',
             }}>
-                ✓
+                <Check size={36} />
             </div>
 
             <h1 style={{ marginBottom: '8px', color: 'var(--success)' }}>

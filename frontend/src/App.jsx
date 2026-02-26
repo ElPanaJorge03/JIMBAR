@@ -2,8 +2,11 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
-// Páginas del cliente
+// Páginas públicas
+import LandingPage from './pages/LandingPage';
 import AgendarPage from './pages/AgendarPage';
+import ClienteLoginPage from './pages/cliente/ClienteLoginPage';
+import RegistroPage from './pages/cliente/RegistroPage';
 
 // Páginas del barbero
 import LoginPage from './pages/barbero/LoginPage';
@@ -14,10 +17,18 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* Ruta raíz → flujo de agendamiento */}
-          <Route path="/" element={<AgendarPage />} />
+          {/* ── Público ─────────────────────────────── */}
+          {/* Página de inicio con info del negocio */}
+          <Route path="/" element={<LandingPage />} />
 
-          {/* Barbero */}
+          {/* Flujo de agendamiento (con o sin cuenta) */}
+          <Route path="/agendar" element={<AgendarPage />} />
+
+          {/* Cuenta de cliente */}
+          <Route path="/login" element={<ClienteLoginPage />} />
+          <Route path="/registro" element={<RegistroPage />} />
+
+          {/* ── Barbero ─────────────────────────────── */}
           <Route path="/barbero/login" element={<LoginPage />} />
           <Route
             path="/barbero/citas"
@@ -28,7 +39,7 @@ export default function App() {
             }
           />
 
-          {/* Cualquier ruta desconocida → inicio */}
+          {/* Ruta desconocida → inicio */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

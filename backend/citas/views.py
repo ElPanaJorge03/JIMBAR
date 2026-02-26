@@ -12,6 +12,7 @@ from .serializers import (
     CitaSerializer,
     CitaEstadoSerializer,
     BloqueoDiaSerializer,
+    RegistroClienteSerializer,
 )
 from .emails import (
     enviar_correo_nueva_cita,
@@ -26,9 +27,27 @@ def _en_background(fn, *args):
     t.start()
 
 
+class RegistroClienteView(generics.CreateAPIView):
+    """
+    POST /api/auth/registro/
+    Crea una cuenta de cliente. Devuelve el usuario creado (sin contraseña).
+    """
+    permission_classes = [AllowAny]
+    serializer_class = RegistroClienteSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        return Response(
+            {'mensaje': 'Cuenta creada exitosamente.', 'correo': user.email},
+            status=status.HTTP_201_CREATED
+        )
+
 # ============================================================
 # VISTAS PÚBLICAS (sin autenticación)
 # ============================================================
+
 
 class ServicioListView(generics.ListAPIView):
     """
@@ -79,7 +98,9 @@ class DisponibilidadView(APIView):
 
         dia_semana = fecha.weekday()
         hora_apertura = time(7, 0)
-        ultima_hora_inicio = time(11, 0) if dia_semana <= 4 else time(10, 0)
+        # L-V: última cita a las 11:00, cierre 12:00
+        # Sáb, Dom: última cita a las 22:00, cierre a medianoche
+        ultima_hora_inicio = time(11, 0) if dia_semana <= 4 else time(22, 0)
 
         citas_activas = Cita.objects.filter(
             fecha=fecha,

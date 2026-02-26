@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.contrib.auth.models import User
 from django.utils import timezone
 from .models import Servicio, Cita, BloqueoDia
 
@@ -59,9 +60,9 @@ class CitaCreateSerializer(serializers.ModelSerializer):
         hora_apertura = time(7, 0)
 
         if dia_semana <= 4:  # Lunes a Viernes
-            ultima_hora_permitida = time(11, 0)
+            ultima_hora_permitida = time(11, 0)   # última cita 11:00, cierre 12:00
         else:  # Sábado y Domingo
-            ultima_hora_permitida = time(10, 0)
+            ultima_hora_permitida = time(22, 0)   # última cita 22:00, cierre medianoche
 
         if hora_inicio < hora_apertura:
             raise serializers.ValidationError("El horario de atención empieza a las 7:00 AM.")
@@ -148,3 +149,37 @@ class BloqueoDiaSerializer(serializers.ModelSerializer):
     class Meta:
         model = BloqueoDia
         fields = ['id', 'fecha', 'motivo']
+
+
+class RegistroClienteSerializer(serializers.ModelSerializer):
+    """
+    Serializer para que un cliente cree su cuenta.
+    Guarda nombre, correo y contraseña (con hash seguro).
+    """
+    password = serializers.CharField(write_only=True, min_length=6)
+    password2 = serializers.CharField(write_only=True, label='Confirmar contraseña')
+
+    class Meta:
+        model = User
+        fields = ['first_name', 'email', 'password', 'password2']
+
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Ya existe una cuenta con ese correo.")
+        return value.lower()
+
+    def validate(self, data):
+        if data['password'] != data['password2']:
+            raise serializers.ValidationError({'password2': 'Las contraseñas no coinciden.'})
+        return data
+
+    def create(self, validated_data):
+        validated_data.pop('password2')
+        # Usamos el correo como username (único y familiar para el cliente)
+        user = User.objects.create_user(
+            username=validated_data['email'],
+            email=validated_data['email'],
+            first_name=validated_data.get('first_name', ''),
+            password=validated_data['password'],
+        )
+        return user

@@ -15,6 +15,8 @@ import PasoConfirmacion from '../components/agendar/PasoConfirmacion';
 
 const PASOS = ['Servicio', 'Fecha y hora', 'Tus datos', 'Confirmación'];
 
+import { Check } from 'lucide-react';
+
 export default function AgendarPage() {
     const [paso, setPaso] = useState(0);
     const [seleccion, setSeleccion] = useState({
@@ -122,7 +124,7 @@ function IndicadorPasos({ pasoActual, pasos }) {
                             border: i > pasoActual ? '1px solid var(--border)' : 'none',
                             transition: 'all 0.3s ease',
                         }}>
-                            {i < pasoActual ? '✓' : i + 1}
+                            {i < pasoActual ? <Check size={14} /> : i + 1}
                         </div>
                         <span style={{
                             fontSize: '0.8rem',
