@@ -104,7 +104,7 @@ class DisponibilidadView(APIView):
 
         citas_activas = Cita.objects.filter(
             fecha=fecha,
-            estado__in=['PENDIENTE', 'CONFIRMADA']
+            estado__in=['PENDIENTE', 'CONFIRMADA', 'COMPLETADA']
         ).values('hora_inicio', 'hora_fin')
 
         slots_disponibles = []

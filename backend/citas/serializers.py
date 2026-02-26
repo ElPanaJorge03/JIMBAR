@@ -81,7 +81,7 @@ class CitaCreateSerializer(serializers.ModelSerializer):
 
         citas_ese_dia = Cita.objects.filter(
             fecha=fecha,
-            estado__in=['PENDIENTE', 'CONFIRMADA']
+            estado__in=['PENDIENTE', 'CONFIRMADA', 'COMPLETADA']
         )
 
         for cita in citas_ese_dia:
