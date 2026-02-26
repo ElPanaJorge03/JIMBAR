@@ -27,7 +27,7 @@ export default function ClienteLoginPage() {
             if (isBarber) {
                 navigate('/barbero/citas', { replace: true });
             } else {
-                navigate('/agendar', { replace: true });
+                navigate('/cliente/citas', { replace: true });
             }
         } catch {
             setError('Correo o contraseña incorrectos.');

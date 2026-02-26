@@ -8,6 +8,7 @@ import AgendarPage from './pages/AgendarPage';
 import CancelarPage from './pages/cliente/CancelarPage';
 import ClienteLoginPage from './pages/cliente/ClienteLoginPage';
 import RegistroPage from './pages/cliente/RegistroPage';
+import DashboardCliente from './pages/cliente/DashboardCliente';
 
 // Páginas del barbero
 import LoginPage from './pages/barbero/LoginPage';
@@ -29,6 +30,14 @@ export default function App() {
           {/* Cuenta de cliente */}
           <Route path="/login" element={<ClienteLoginPage />} />
           <Route path="/registro" element={<RegistroPage />} />
+          <Route
+            path="/cliente/citas"
+            element={
+              <ProtectedRoute>
+                <DashboardCliente />
+              </ProtectedRoute>
+            }
+          />
 
           {/* ── Barbero ─────────────────────────────── */}
           <Route path="/barbero/login" element={<LoginPage />} />

@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.utils import timezone
 from datetime import datetime, timedelta, time
+from django.db.models import Q
 from .models import Servicio, Cita, BloqueoDia
 from .serializers import (
     ServicioSerializer,
@@ -158,6 +159,21 @@ class CitaCreateView(generics.CreateAPIView):
         # Notificar al barbero en background (si falla el email, la cita ya se guardó)
         origen_url = self.request.META.get('HTTP_ORIGIN', '')
         _en_background(enviar_correo_nueva_cita, cita.id, origen_url)
+
+
+class CitaClienteListView(generics.ListAPIView):
+    """
+    GET /api/cliente/citas/
+    El cliente ve su propio historial de citas filtrando por su email.
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = CitaSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        return Cita.objects.filter(
+            Q(usuario=user) | Q(cliente_correo=user.email) | Q(cliente_correo=user.username)
+        ).order_by('-fecha', '-hora_inicio')
 
 
 class CitaCancelarView(APIView):

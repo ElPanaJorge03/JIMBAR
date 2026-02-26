@@ -5,6 +5,9 @@ urlpatterns = [
     # ── Auth cliente ───────────────────────────────────────────
     path('auth/registro/', views.RegistroClienteView.as_view(), name='registro-cliente'),
 
+    # ── Área del Cliente Autenticado ───────────────────────────
+    path('cliente/citas/', views.CitaClienteListView.as_view(), name='cliente-cita-list'),
+
 
     # ── Públicas ──────────────────────────────────────────────
     # Lista de servicios disponibles

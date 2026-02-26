@@ -28,7 +28,7 @@ export default function LandingPage() {
         if (role === 'barbero') {
             return <Navigate to="/barbero/citas" replace />;
         } else {
-            return <Navigate to="/agendar" replace />;
+            return <Navigate to="/cliente/citas" replace />;
         }
     }
 
