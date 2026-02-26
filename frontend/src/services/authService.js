@@ -3,12 +3,15 @@
  */
 import api from './api';
 
-export const login = async (username, password, role = 'barbero') => {
+export const login = async (username, password) => {
     const { data } = await api.post('/auth/token/', { username, password });
     localStorage.setItem('access_token', data.access);
     localStorage.setItem('refresh_token', data.refresh);
-    localStorage.setItem('role', role);
-    return data;
+
+    // El rol real lo decide el backend al iniciar sesión
+    const actualRole = data.is_barbero ? 'barbero' : 'cliente';
+    localStorage.setItem('role', actualRole);
+    return { ...data, role: actualRole };
 };
 
 export const logout = () => {

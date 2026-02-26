@@ -16,10 +16,11 @@ export function AuthProvider({ children }) {
     const [authenticated, setAuthenticated] = useState(isAuthenticated());
     const [role, setRole] = useState(getRole());
 
-    const login = async (username, password, r = 'barbero') => {
-        await loginService(username, password, r);
+    const login = async (username, password) => {
+        const data = await loginService(username, password);
         setAuthenticated(true);
-        setRole(r);
+        setRole(data.role);
+        return data;
     };
 
     const logout = () => {

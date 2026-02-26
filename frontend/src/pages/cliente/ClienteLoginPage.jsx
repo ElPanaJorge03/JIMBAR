@@ -19,12 +19,9 @@ export default function ClienteLoginPage() {
         setError('');
         setLoading(true);
         try {
-            const isBarber = form.email.toLowerCase() === 'admin';
-            const userRole = isBarber ? 'barbero' : 'cliente';
+            const data = await login(form.email.toLowerCase(), form.password);
 
-            await login(form.email.toLowerCase(), form.password, userRole);
-
-            if (isBarber) {
+            if (data.role === 'barbero') {
                 navigate('/barbero/citas', { replace: true });
             } else {
                 navigate('/cliente/citas', { replace: true });

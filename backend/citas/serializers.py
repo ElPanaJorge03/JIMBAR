@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.utils import timezone
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import Servicio, Cita, BloqueoDia
 
 
@@ -209,3 +210,11 @@ class RegistroClienteSerializer(serializers.ModelSerializer):
             password=validated_data['password'],
         )
         return user
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        # Añadir al JSON de respuesta (no al payload oculto del token)
+        data['is_barbero'] = self.user.is_superuser or self.user.is_staff
+        return data

@@ -17,8 +17,12 @@ export default function LoginPage() {
         setError('');
         setLoading(true);
         try {
-            await login(form.username, form.password, 'barbero');
-            navigate('/barbero/citas', { replace: true });
+            const data = await login(form.username, form.password);
+            if (data.role === 'barbero') {
+                navigate('/barbero/citas', { replace: true });
+            } else {
+                navigate('/cliente/citas', { replace: true });
+            }
         } catch {
             setError('Usuario o contraseña incorrectos.');
         } finally {
