@@ -48,7 +48,7 @@ export default function AgendarPage() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                         <button
                             className="btn btn--ghost"
-                            onClick={() => navigate(-1)}
+                            onClick={() => navigate('/')}
                             style={{ padding: '0 8px', fontSize: '1.25rem' }}
                             title="Volver"
                         >

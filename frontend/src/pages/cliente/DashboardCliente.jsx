@@ -27,7 +27,7 @@ export default function DashboardCliente() {
 
     const handleLogout = () => {
         logout();
-        navigate('/');
+        navigate('/', { replace: true });
     };
 
     const getEstadoText = (estado) => {

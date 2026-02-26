@@ -97,7 +97,7 @@ export default function RegistroPage() {
 
                 <button
                     className="btn btn--ghost"
-                    onClick={() => navigate(-1)}
+                    onClick={() => navigate('/login')}
                     style={{ marginBottom: '24px', paddingLeft: 0 }}
                 >
                     ← Volver
