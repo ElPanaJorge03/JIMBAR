@@ -172,6 +172,9 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 # Correo del barbero (recibe notificaciones de nuevas citas y cancelaciones)
 BARBER_EMAIL = os.getenv('BARBER_EMAIL', EMAIL_HOST_USER).strip('"').strip("'")
 
+# API Keys para proveedores de correo por HTTP (Bypass Railway Port 587 Block)
+BREVO_API_KEY = os.getenv('BREVO_API_KEY', '').strip('"').strip("'")
+
 
 # ============================================================
 # CONFIRMACIÓN AUTOMÁTICA — Timer en minutos

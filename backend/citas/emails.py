@@ -127,19 +127,50 @@ def enviar_correo_cancelacion_cliente(cita_id):
     )
 
 
+import json
+import urllib.request
+from django.core.mail import send_mail
+from django.conf import settings
+
 def _enviar(asunto, mensaje, destinatarios):
     """Función base de envío. Captura cualquier error sin romper el flujo."""
-    if not settings.EMAIL_HOST_USER:
-        logger.info(f"Email no configurado. Se omite: {asunto}")
-        return
-    try:
-        send_mail(
-            subject=asunto,
-            message=mensaje,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=destinatarios,
-            fail_silently=False,
-        )
-        logger.info(f"Email enviado: {asunto} → {destinatarios}")
-    except Exception as e:
-        logger.error(f"Error enviando email '{asunto}': {e}")
+    brevo_key = getattr(settings, 'BREVO_API_KEY', None)
+    
+    if brevo_key:
+        try:
+            url = "https://api.brevo.com/v3/smtp/email"
+            payload = {
+                "sender": {
+                    "email": settings.DEFAULT_FROM_EMAIL,
+                    "name": "Jimbar"
+                },
+                "to": [{"email": dest} for dest in destinatarios],
+                "subject": asunto,
+                "textContent": mensaje
+            }
+            req = urllib.request.Request(url, data=json.dumps(payload).encode('utf-8'), headers={
+                "api-key": brevo_key,
+                "accept": "application/json",
+                "content-type": "application/json"
+            })
+            with urllib.request.urlopen(req) as response:
+                logger.info(f"Email HTTP enviado vía Brevo: {asunto} → {destinatarios} Status: {response.status}")
+        except Exception as e:
+            logger.error(f"Error enviando email vía Brevo API: {e}")
+            
+    else:
+        # Fallback al SMTP clásico (No funcionará en Railway Free por bloqueo del 587)
+        if not settings.EMAIL_HOST_USER:
+            logger.info(f"Email no configurado. Se omite: {asunto}")
+            return
+        try:
+            send_mail(
+                subject=asunto,
+                message=mensaje,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=destinatarios,
+                fail_silently=False,
+            )
+            logger.info(f"Email enviado: {asunto} → {destinatarios}")
+        except Exception as e:
+            logger.error(f"Error enviando email '{asunto}': {e}")
