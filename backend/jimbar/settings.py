@@ -181,3 +181,27 @@ BARBER_EMAIL = os.getenv('BARBER_EMAIL', EMAIL_HOST_USER).strip('"').strip("'")
 # la confirmación automática se dispara con un management command o
 # se puede probar manualmente desde el admin.
 AUTO_CONFIRM_MINUTES = 15
+
+# ============================================================
+# LOGGING (Fundamental para ver errores en Railway)
+# ============================================================
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'citas.emails': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    },
+}

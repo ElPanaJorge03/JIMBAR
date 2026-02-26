@@ -22,9 +22,8 @@ from .emails import (
 
 
 def _en_background(fn, *args):
-    """Ejecuta una función en un thread separado para no bloquear el request."""
-    t = threading.Thread(target=fn, args=args, daemon=True)
-    t.start()
+    """Ejecución síncrona temporal para asegurar el envío de correos en Railway."""
+    fn(*args)
 
 
 class RegistroClienteView(generics.CreateAPIView):
