@@ -346,7 +346,7 @@ class CitaClienteListView(generics.ListAPIView):
         # Buscar en todas las barberias por usuario o correo
         return Cita.objects.filter(
             Q(usuario=user) | Q(cliente_correo=user.email) | Q(cliente_correo=user.username)
-        ).select_related('servicio').order_by('-fecha', '-hora_inicio')
+        ).prefetch_related('servicios').order_by('-fecha', '-hora_inicio')
 
 
 class CitaCancelarView(TenantMixin, APIView):

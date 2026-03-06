@@ -35,7 +35,7 @@ def _generar_html(titulo, contenido_html):
 def _get_cita(cita_id):
     from .models import Cita
     try:
-        return Cita.objects.select_related('servicio').get(id=cita_id)
+        return Cita.objects.prefetch_related('servicios').get(id=cita_id)
     except Cita.DoesNotExist:
         logger.warning(f"Email: cita {cita_id} no encontrada.")
         return None
@@ -77,7 +77,7 @@ def enviar_correo_nueva_cita(cita_id, origen_url=None):
         f"Nueva solicitud de cita:\n\n"
         f"Cliente: {cita.cliente_nombre}\n"
         f"Teléfono: {cita.cliente_telefono}\n"
-        f"Servicio: {cita.servicio.nombre}\n"
+        f"Servicio(s): {', '.join(s.nombre for s in cita.servicios.all())}\n"
         f"Fecha: {cita.fecha.strftime('%d/%m/%Y')}\n"
         f"Hora: {cita.hora_inicio.strftime('%H:%M')}\n"
         f"Dirección: {cita.cliente_direccion}\n"
@@ -98,7 +98,7 @@ def enviar_correo_nueva_cita(cita_id, origen_url=None):
     # === AL CLIENTE ===
     mensaje_cliente = (
         f"Hola {cita.cliente_nombre},\n\n"
-        f"Hemos recibido tu solicitud de cita para el servicio de '{cita.servicio.nombre}'.\n\n"
+        f"Hemos recibido tu solicitud de cita para el/los servicio/s de '{', '.join(s.nombre for s in cita.servicios.all())}'.\n\n"
         f"Detalles:\n"
         f"Fecha: {cita.fecha.strftime('%d/%m/%Y')}\n"
         f"Hora: {cita.hora_inicio.strftime('%H:%M')}\n\n"
@@ -140,7 +140,7 @@ def enviar_correo_estado_cita(cita_id, nuevo_estado):
         mensaje = (
             f"Hola {cita.cliente_nombre},\n\n"
             f"Tu cita ha sido confirmada:\n\n"
-            f"Servicio: {cita.servicio.nombre}\n"
+            f"Servicio(s): {', '.join(s.nombre for s in cita.servicios.all())}\n"
             f"Fecha: {cita.fecha.strftime('%d/%m/%Y')}\n"
             f"Hora: {cita.hora_inicio.strftime('%H:%M')}\n"
             f"Dirección: {cita.cliente_direccion}\n\n"
@@ -161,7 +161,7 @@ def enviar_correo_estado_cita(cita_id, nuevo_estado):
         mensaje = (
             f"Hola {cita.cliente_nombre},\n\n"
             f"Tu cita ha sido marcada como completada. Esperamos "
-            f"que te haya encantado el servicio de '{cita.servicio.nombre}'.\n\n"
+            f"que te haya encantado el servicio de '{', '.join(s.nombre for s in cita.servicios.all())}'.\n\n"
             f"¡Vuelve pronto a Jimbar!"
         )
     else:
@@ -183,7 +183,7 @@ def enviar_correo_cancelacion_cliente(cita_id):
 
     mensaje = (
         f"El cliente {cita.cliente_nombre} canceló su cita:\n\n"
-        f"Servicio: {cita.servicio.nombre}\n"
+        f"Servicio(s): {', '.join(s.nombre for s in cita.servicios.all())}\n"
         f"Fecha: {cita.fecha.strftime('%d/%m/%Y')}\n"
         f"Hora: {cita.hora_inicio.strftime('%H:%M')}\n"
         f"Teléfono: {cita.cliente_telefono}\n"

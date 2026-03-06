@@ -57,7 +57,7 @@ def enviar_correo_nueva_cita(cita_id):
         f"Nueva solicitud de cita:\n\n"
         f"Cliente: {cita.cliente_nombre}\n"
         f"Teléfono: {cita.cliente_telefono}\n"
-        f"Servicio: {cita.servicio.nombre}\n"
+        f"Servicio(s): {', '.join(s.nombre for s in cita.servicios.all())}\n"
         f"Fecha: {cita.fecha.strftime('%d/%m/%Y')}\n"
         f"Hora: {cita.hora_inicio.strftime('%H:%M')}\n"
         f"Dirección: {cita.cliente_direccion}\n"
@@ -93,7 +93,7 @@ def enviar_correo_estado_cita(cita_id, nuevo_estado):
         mensaje = (
             f"Hola {cita.cliente_nombre},\n\n"
             f"Tu cita ha sido confirmada:\n\n"
-            f"Servicio: {cita.servicio.nombre}\n"
+            f"Servicio(s): {', '.join(s.nombre for s in cita.servicios.all())}\n"
             f"Fecha: {cita.fecha.strftime('%d/%m/%Y')}\n"
             f"Hora: {cita.hora_inicio.strftime('%H:%M')}\n"
             f"Dirección: {cita.cliente_direccion}\n\n"
@@ -135,7 +135,7 @@ def enviar_correo_cancelacion_cliente(cita_id):
 
     mensaje = (
         f"El cliente {cita.cliente_nombre} canceló su cita:\n\n"
-        f"Servicio: {cita.servicio.nombre}\n"
+        f"Servicio(s): {', '.join(s.nombre for s in cita.servicios.all())}\n"
         f"Fecha: {cita.fecha.strftime('%d/%m/%Y')}\n"
         f"Hora: {cita.hora_inicio.strftime('%H:%M')}\n"
         f"Teléfono: {cita.cliente_telefono}\n"
@@ -159,7 +159,7 @@ def _enviar_correo_confirmacion(cita, automatica=False):
     mensaje = (
         f"Hola {cita.cliente_nombre},\n\n"
         f"Tu cita ha sido confirmada{nota_auto}:\n\n"
-        f"Servicio: {cita.servicio.nombre}\n"
+        f"Servicio(s): {', '.join(s.nombre for s in cita.servicios.all())}\n"
         f"Fecha: {cita.fecha.strftime('%d/%m/%Y')}\n"
         f"Hora: {cita.hora_inicio.strftime('%H:%M')}\n"
         f"Dirección: {cita.cliente_direccion}\n\n"
