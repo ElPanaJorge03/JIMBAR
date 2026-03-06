@@ -1,5 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import User
+from barberias.models import Barberia
+
+class TenantManager(models.Manager):
+    def for_tenant(self, barberia):
+        return self.get_queryset().filter(barberia=barberia)
 
 
 class Servicio(models.Model):
@@ -11,6 +16,9 @@ class Servicio(models.Model):
     precio = models.IntegerField(help_text="Precio en pesos colombianos")
     duracion_minutos = models.IntegerField(help_text="Duración del servicio en minutos")
     activo = models.BooleanField(default=True, help_text="Si está en False, no aparece al cliente")
+    barberia = models.ForeignKey(Barberia, on_delete=models.CASCADE, null=True, related_name='servicios')
+
+    objects = TenantManager()
 
     class Meta:
         verbose_name = "Servicio"
@@ -25,14 +33,23 @@ class BloqueoDia(models.Model):
     """
     El barbero puede bloquear un día completo (vacaciones, imprevistos, etc.)
     """
-    fecha = models.DateField(unique=True)
+    fecha = models.DateField()
     motivo = models.CharField(max_length=200, blank=True, help_text="Opcional: razón del bloqueo")
     creado_en = models.DateTimeField(auto_now_add=True)
+    barberia = models.ForeignKey(Barberia, on_delete=models.CASCADE, null=True, related_name='bloqueos')
+
+    objects = TenantManager()
 
     class Meta:
         verbose_name = "Bloqueo de día"
         verbose_name_plural = "Bloqueos de días"
         ordering = ['fecha']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['fecha', 'barberia'],
+                name='unique_bloqueo_por_barberia'
+            )
+        ]
 
     def __str__(self):
         return f"Bloqueado: {self.fecha} — {self.motivo or 'Sin motivo especificado'}"
@@ -76,6 +93,9 @@ class Cita(models.Model):
     hora_inicio = models.TimeField()
     hora_fin    = models.TimeField()  # Se calcula automáticamente al guardar
 
+    barberia = models.ForeignKey(Barberia, on_delete=models.CASCADE, null=True, related_name='citas_lista')
+    objects = TenantManager()
+
     # Estado de la cita
     estado = models.CharField(
         max_length=20,
@@ -97,7 +117,7 @@ class Cita(models.Model):
         # Evita citas duplicadas en el mismo horario
         constraints = [
             models.UniqueConstraint(
-                fields=['fecha', 'hora_inicio'],
+                fields=['fecha', 'hora_inicio', 'barberia'],
                 condition=~models.Q(estado__in=['RECHAZADA', 'CANCELADA']),
                 name='unique_cita_activa_por_horario'
             )

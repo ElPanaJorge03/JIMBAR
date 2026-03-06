@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import Servicio, Cita, BloqueoDia
+from barberias.models import Barberia
 
 
 class ServicioSerializer(serializers.ModelSerializer):
@@ -63,8 +64,12 @@ class CitaCreateSerializer(serializers.ModelSerializer):
         if fecha < ahora.date():
             raise serializers.ValidationError("No puedes agendar una cita en el pasado.")
             
+        barberia = self.context.get('barberia')
+        if not barberia:
+            barberia = Barberia.objects.first()
+            
         # Anti-spam: Máximo 3 citas por día por cliente
-        citas_cliente_hoy = Cita.objects.filter(
+        citas_cliente_hoy = Cita.objects.for_tenant(barberia).filter(
             fecha=fecha,
             cliente_correo=correo,
             estado__in=['PENDIENTE', 'CONFIRMADA']
@@ -74,7 +79,7 @@ class CitaCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"cliente_correo": "Has alcanzado el límite máximo de 3 citas por día."})
 
         # 2. Verificar si el día está bloqueado
-        if BloqueoDia.objects.filter(fecha=fecha).exists():
+        if BloqueoDia.objects.for_tenant(barberia).filter(fecha=fecha).exists():
             raise serializers.ValidationError(
                 "El barbero no está disponible ese día."
             )
@@ -106,7 +111,7 @@ class CitaCreateSerializer(serializers.ModelSerializer):
         fin_dt = inicio_dt + timedelta(minutes=servicio.duracion_minutos)
         hora_fin = fin_dt.time()
 
-        citas_ese_dia = Cita.objects.filter(
+        citas_ese_dia = Cita.objects.for_tenant(barberia).filter(
             fecha=fecha,
             estado__in=['PENDIENTE', 'CONFIRMADA', 'COMPLETADA']
         )

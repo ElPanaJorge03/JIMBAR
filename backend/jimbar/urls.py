@@ -20,4 +20,5 @@ urlpatterns = [
 
     # ── API principal ──────────────────────────────────────────
     path('api/', include('citas.urls')),
+    path('api/<slug:slug>/', include('citas.urls')),
 ]

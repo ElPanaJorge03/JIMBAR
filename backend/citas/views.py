@@ -10,6 +10,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
+from django.shortcuts import get_object_or_404
+from barberias.models import Barberia
 from .models import Servicio, Cita, BloqueoDia
 from .serializers import (
     ServicioSerializer,
@@ -31,6 +33,25 @@ def _en_background(fn, *args):
     Necesario aquí porque si falla el email o hace timeout, no crashea la API."""
     t = threading.Thread(target=fn, args=args, daemon=True)
     t.start()
+
+
+class TenantMixin:
+    """
+    Resuelve el tenant (Barberia) a partir de la URL (kwarg 'slug').
+    Si no viene, usa la primera para retrocompatibilidad en Fase 1.
+    Aplica el filtro `.for_tenant()` a todos los querysets.
+    """
+    def get_barberia(self):
+        slug = self.kwargs.get('slug')
+        if slug:
+            return get_object_or_404(Barberia, slug=slug)
+        return Barberia.objects.first()
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if hasattr(qs, 'for_tenant'):
+            return qs.for_tenant(self.get_barberia())
+        return qs
 
 
 class RegistroClienteView(generics.CreateAPIView):
@@ -141,17 +162,19 @@ class RestaurarPasswordView(APIView):
 # ============================================================
 
 
-class ServicioListView(generics.ListAPIView):
+class ServicioListView(TenantMixin, generics.ListAPIView):
     """
-    GET /api/servicios/
+    GET /api/servicios/ o /api/<slug>/servicios/
     Lista todos los servicios activos. Cualquiera puede verlos.
     """
     permission_classes = [AllowAny]
     serializer_class = ServicioSerializer
-    queryset = Servicio.objects.filter(activo=True)
+    
+    def get_queryset(self):
+        return Servicio.objects.for_tenant(self.get_barberia()).filter(activo=True)
 
 
-class DisponibilidadView(APIView):
+class DisponibilidadView(TenantMixin, APIView):
     """
     GET /api/disponibilidad/?fecha=YYYY-MM-DD&servicio_id=1
     Devuelve los slots de tiempo disponibles para una fecha y servicio dados.
@@ -177,11 +200,11 @@ class DisponibilidadView(APIView):
             )
 
         try:
-            servicio = Servicio.objects.get(id=servicio_id, activo=True)
+            servicio = Servicio.objects.for_tenant(self.get_barberia()).get(id=servicio_id, activo=True)
         except Servicio.DoesNotExist:
             return Response({'error': 'Servicio no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
-        if BloqueoDia.objects.filter(fecha=fecha).exists():
+        if BloqueoDia.objects.for_tenant(self.get_barberia()).filter(fecha=fecha).exists():
             return Response({'disponible': False, 'slots': [], 'motivo': 'Día bloqueado'})
 
         hoy = timezone.localdate()
@@ -194,7 +217,7 @@ class DisponibilidadView(APIView):
         # Sáb, Dom: última cita a las 22:00, cierre a medianoche
         ultima_hora_inicio = time(11, 0) if dia_semana <= 4 else time(22, 0)
 
-        citas_activas = Cita.objects.filter(
+        citas_activas = Cita.objects.for_tenant(self.get_barberia()).filter(
             fecha=fecha,
             estado__in=['PENDIENTE', 'CONFIRMADA', 'COMPLETADA']
         ).values('hora_inicio', 'hora_fin')
@@ -230,17 +253,22 @@ class DisponibilidadView(APIView):
         })
 
 
-class CitaCreateView(generics.CreateAPIView):
+class CitaCreateView(TenantMixin, generics.CreateAPIView):
     """
-    POST /api/citas/
+    POST /api/citas/ o /api/<slug>/citas/
     Cualquier persona puede crear una cita.
     Después notifica al barbero por email (en background, no bloquea).
     """
     permission_classes = [AllowAny]
     serializer_class = CitaCreateSerializer
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['barberia'] = self.get_barberia()
+        return context
+
     def perform_create(self, serializer):
-        cita = serializer.save()
+        cita = serializer.save(barberia=self.get_barberia())
 
         if self.request.user.is_authenticated:
             cita.usuario = self.request.user
@@ -251,7 +279,7 @@ class CitaCreateView(generics.CreateAPIView):
         _en_background(enviar_correo_nueva_cita, cita.id, origen_url)
 
 
-class CitaClienteListView(generics.ListAPIView):
+class CitaClienteListView(TenantMixin, generics.ListAPIView):
     """
     GET /api/cliente/citas/
     El cliente ve su propio historial de citas filtrando por su email.
@@ -261,12 +289,12 @@ class CitaClienteListView(generics.ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        return Cita.objects.filter(
+        return Cita.objects.for_tenant(self.get_barberia()).filter(
             Q(usuario=user) | Q(cliente_correo=user.email) | Q(cliente_correo=user.username)
         ).order_by('-fecha', '-hora_inicio')
 
 
-class CitaCancelarView(APIView):
+class CitaCancelarView(TenantMixin, APIView):
     """
     POST /api/citas/{id}/cancelar/
     El cliente cancela su cita con más de 2 horas de anticipación.
@@ -283,7 +311,7 @@ class CitaCancelarView(APIView):
             )
 
         try:
-            cita = Cita.objects.get(id=pk, cliente_correo=correo)
+            cita = Cita.objects.for_tenant(self.get_barberia()).get(id=pk, cliente_correo=correo)
         except Cita.DoesNotExist:
             return Response(
                 {'error': 'Cita no encontrada. Verifica el ID y correo.'},
@@ -322,7 +350,7 @@ class CitaCancelarView(APIView):
 # VISTAS DEL BARBERO (requieren autenticación JWT)
 # ============================================================
 
-class CitaListView(generics.ListAPIView):
+class CitaListView(TenantMixin, generics.ListAPIView):
     """
     GET /api/barbero/citas/
     Lista todas las citas. Filtros opcionales: ?estado=PENDIENTE &fecha=YYYY-MM-DD
@@ -331,7 +359,7 @@ class CitaListView(generics.ListAPIView):
     serializer_class = CitaSerializer
 
     def get_queryset(self):
-        queryset = Cita.objects.select_related('servicio').all()
+        queryset = Cita.objects.for_tenant(self.get_barberia()).select_related('servicio').all()
         estado = self.request.query_params.get('estado')
         if estado:
             queryset = queryset.filter(estado=estado)
@@ -341,14 +369,16 @@ class CitaListView(generics.ListAPIView):
         return queryset
 
 
-class CitaDetailView(generics.RetrieveAPIView):
+class CitaDetailView(TenantMixin, generics.RetrieveAPIView):
     """GET /api/barbero/citas/{id}/"""
     permission_classes = [IsAuthenticated]
     serializer_class = CitaSerializer
-    queryset = Cita.objects.select_related('servicio').all()
+    
+    def get_queryset(self):
+        return Cita.objects.for_tenant(self.get_barberia()).select_related('servicio').all()
 
 
-class CitaEstadoView(APIView):
+class CitaEstadoView(TenantMixin, APIView):
     """
     PATCH /api/barbero/citas/{id}/estado/
     El barbero confirma, rechaza o marca como completada una cita.
@@ -357,7 +387,7 @@ class CitaEstadoView(APIView):
 
     def patch(self, request, pk):
         try:
-            cita = Cita.objects.get(id=pk)
+            cita = Cita.objects.for_tenant(self.get_barberia()).get(id=pk)
         except Cita.DoesNotExist:
             return Response({'error': 'Cita no encontrada.'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -374,15 +404,22 @@ class CitaEstadoView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class BloqueoDiaListCreateView(generics.ListCreateAPIView):
+class BloqueoDiaListCreateView(TenantMixin, generics.ListCreateAPIView):
     """GET + POST /api/barbero/bloqueos/"""
     permission_classes = [IsAuthenticated]
     serializer_class = BloqueoDiaSerializer
-    queryset = BloqueoDia.objects.all()
+    
+    def get_queryset(self):
+        return BloqueoDia.objects.for_tenant(self.get_barberia()).all()
+        
+    def perform_create(self, serializer):
+        serializer.save(barberia=self.get_barberia())
 
 
-class BloqueoDiaDeleteView(generics.DestroyAPIView):
+class BloqueoDiaDeleteView(TenantMixin, generics.DestroyAPIView):
     """DELETE /api/barbero/bloqueos/{id}/"""
     permission_classes = [IsAuthenticated]
     serializer_class = BloqueoDiaSerializer
-    queryset = BloqueoDia.objects.all()
+    
+    def get_queryset(self):
+        return BloqueoDia.objects.for_tenant(self.get_barberia()).all()
