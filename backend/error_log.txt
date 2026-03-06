@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "C:\Users\Jorge Andres\Documents\JIMBAR\backend\test_cloudinary2.py", line 9, in <module>
+    res = cloudinary.uploader.upload("dummy.txt")
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Jorge Andres\Documents\JIMBAR\backend\venv\Lib\site-packages\cloudinary\uploader.py", line 198, in upload
+    return call_cacheable_api("upload", params, file=file, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Jorge Andres\Documents\JIMBAR\backend\venv\Lib\site-packages\cloudinary\uploader.py", line 834, in call_cacheable_api
+    result = call_api(action, params, http_headers, return_error, unsigned, file, timeout, **options)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Jorge Andres\Documents\JIMBAR\backend\venv\Lib\site-packages\cloudinary\uploader.py", line 921, in call_api
+    raise exception_class(result["error"]["message"])
+cloudinary.exceptions.AuthorizationRequired: Invalid Signature dc9c9b1476c452a2583f6164f7a004a74ed55f61. String to sign - 'timestamp=1772834063'.

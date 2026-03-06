@@ -294,8 +294,8 @@ class DisponibilidadView(TenantMixin, APIView):
         return Response({
             'disponible': True,
             'fecha': fecha_str,
-            'servicio': servicio.nombre,
-            'duracion_minutos': servicio.duracion_minutos,
+            'servicios': [s.nombre for s in servicios],
+            'duracion_minutos': duracion_total_minutos,
             'slots': slots_disponibles,
         })
 

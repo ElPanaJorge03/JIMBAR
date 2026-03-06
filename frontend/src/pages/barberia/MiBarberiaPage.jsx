@@ -79,9 +79,11 @@ export default function MiBarberiaPage() {
             setSuccess('¡Cambios guardados exitosamente!');
         } catch (err) {
             const d = err.response?.data;
-            if (d) {
+            if (err.response?.status === 500 || (typeof d === 'string' && d.includes('<!DOCTYPE html>'))) {
+                setError('Error del servidor (500). Verifica la configuración de Cloudinary o intenta más tarde.');
+            } else if (d && typeof d === 'object') {
                 const msg = Object.values(d).flat().join(' ');
-                setError(msg);
+                setError(msg || 'Error al guardar. Verifica los datos.');
             } else {
                 setError('Error al guardar. Intenta de nuevo.');
             }

@@ -53,3 +53,13 @@ class BarberiaPerfilView(generics.RetrieveUpdateAPIView):
         # Fallback solo para superadmin Django sin perfil
         from .models import Barberia
         return Barberia.objects.first()
+
+    def perform_update(self, serializer):
+        from rest_framework.exceptions import ValidationError
+        try:
+            serializer.save()
+        except Exception as e:
+            # Si Cloudinary falla por firma inválida, api_key errónea o caídas
+            raise ValidationError({
+                'imagen': f'Error al guardar la imagen en la nube. Verifica tus credenciales de Cloudinary. (Detalle: {str(e)})'
+            })
