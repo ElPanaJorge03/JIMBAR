@@ -8,6 +8,7 @@ import { useState } from 'react';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
 import { getDisponibilidad } from '../../services/citasService';
+import TimePickerWheel from './TimePickerWheel';
 
 dayjs.locale('es');
 
@@ -100,43 +101,17 @@ export default function PasoFechaHora({ slug, servicios, onSiguiente, onAnterior
             {/* Error técnico */}
             {error && <div className="alert alert--error" style={{ marginBottom: '24px' }}>{error}</div>}
 
-            {/* Grid de slots disponibles */}
+            {/* Ruleta de horarios disponibles */}
             {!loading && slots.length > 0 && (
                 <div style={{ marginBottom: '28px' }}>
-                    <label className="form-label" style={{ marginBottom: '12px', display: 'block' }}>
+                    <label className="form-label" style={{ marginBottom: '20px', display: 'block', textAlign: 'center' }}>
                         Horarios disponibles
                     </label>
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(3, 1fr)',
-                        gap: '10px',
-                    }}>
-                        {slots.map((slot) => (
-                            <button
-                                key={slot.hora_inicio}
-                                onClick={() => setSlotSeleccionado(slot)}
-                                style={{
-                                    background: slotSeleccionado?.hora_inicio === slot.hora_inicio
-                                        ? 'var(--accent)'
-                                        : 'var(--bg-elevated)',
-                                    color: slotSeleccionado?.hora_inicio === slot.hora_inicio
-                                        ? '#0a0a0a'
-                                        : 'var(--text-primary)',
-                                    border: `1px solid ${slotSeleccionado?.hora_inicio === slot.hora_inicio ? 'var(--accent)' : 'var(--border)'}`,
-                                    borderRadius: 'var(--radius-md)',
-                                    padding: '10px 6px',
-                                    fontSize: '0.9375rem',
-                                    fontWeight: 500,
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s ease',
-                                    textAlign: 'center',
-                                    fontFamily: 'inherit',
-                                }}
-                            >
-                                {slot.hora_inicio}
-                            </button>
-                        ))}
-                    </div>
+                    <TimePickerWheel
+                        slots={slots}
+                        selectedSlot={slotSeleccionado}
+                        onSlotChange={setSlotSeleccionado}
+                    />
                 </div>
             )}
 

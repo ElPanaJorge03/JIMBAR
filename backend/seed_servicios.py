@@ -19,9 +19,12 @@ servicios = [
 ]
 
 for s in servicios:
-    obj, created = Servicio.objects.get_or_create(nombre=s['nombre'], defaults=s)
-    estado = 'Creado' if created else 'Ya existe'
-    print(f"{estado}: {obj}")
+    try:
+        obj, created = Servicio.objects.get_or_create(nombre=s['nombre'], defaults=s)
+        estado = 'Creado' if created else 'Ya existe'
+        print(f"{estado}: {obj}")
+    except Exception as e:
+        print(f"Omitiendo {s['nombre']} ya que existen varios o hay un error: {e}")
 
 print("\nServicios en la base de datos:")
 for s in Servicio.objects.all():
