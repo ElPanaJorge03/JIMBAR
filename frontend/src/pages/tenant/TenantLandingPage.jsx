@@ -52,8 +52,34 @@ export default function TenantLandingPage() {
                 backgroundPosition: 'center',
                 borderBottom: '1px solid var(--border)',
             }}>
-                {/* Logo */}
-                <div style={{ marginBottom: '16px' }}>
+                {/* Logo y Encabezado */}
+                <div style={{ marginBottom: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                    {barberia.logo && (
+                        <div style={{
+                            width: '80px',
+                            height: '80px',
+                            borderRadius: '50%',
+                            background: '#0a0a0a',
+                            padding: '4px',
+                            border: '2px solid var(--accent)',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            overflow: 'hidden'
+                        }}>
+                            <img
+                                src={barberia.logo}
+                                alt={`Logo ${barberia.nombre}`}
+                                style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover',
+                                    borderRadius: '50%'
+                                }}
+                            />
+                        </div>
+                    )}
                     <span style={{
                         display: 'inline-block',
                         fontSize: '0.75rem',
@@ -61,7 +87,8 @@ export default function TenantLandingPage() {
                         letterSpacing: '3px',
                         color: 'var(--accent)',
                         textTransform: 'uppercase',
-                        marginBottom: '12px',
+                        marginTop: '4px',
+                        marginBottom: '4px',
                     }}>
                         Reservas de Barbería
                     </span>

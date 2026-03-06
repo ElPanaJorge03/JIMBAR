@@ -258,11 +258,17 @@ class DisponibilidadView(TenantMixin, APIView):
         if fecha < hoy:
             return Response({'disponible': False, 'slots': [], 'motivo': 'Fecha pasada'})
 
+        barberia = self.get_barberia()
         dia_semana = fecha.weekday()
-        hora_apertura = time(7, 0)
-        # L-V: última cita a las 11:00, cierre 12:00
-        # Sáb, Dom: última cita a las 22:00, cierre a medianoche
-        ultima_hora_inicio = time(11, 0) if dia_semana <= 4 else time(22, 0)
+        
+        if dia_semana <= 4:  # Lunes a Viernes
+            hora_apertura = barberia.hora_apertura_semana
+            hora_cierre = barberia.hora_cierre_semana
+        else:  # Sábado o Domingo
+            if not barberia.abre_fines_de_semana:
+                return Response({'disponible': False, 'slots': [], 'motivo': 'Cerrado fines de semana'})
+            hora_apertura = barberia.hora_apertura_finde
+            hora_cierre = barberia.hora_cierre_finde
 
         citas_activas = Cita.objects.for_tenant(self.get_barberia()).filter(
             fecha=fecha,
@@ -271,10 +277,10 @@ class DisponibilidadView(TenantMixin, APIView):
 
         slots_disponibles = []
         cursor = datetime.combine(fecha, hora_apertura)
-        limite = datetime.combine(fecha, ultima_hora_inicio)
+        limite = datetime.combine(fecha, hora_cierre)
         duracion = timedelta(minutes=duracion_total_minutos)
 
-        while cursor <= limite:
+        while (cursor + duracion) <= limite:
             slot_inicio = cursor.time()
             slot_fin = (cursor + duracion).time()
 

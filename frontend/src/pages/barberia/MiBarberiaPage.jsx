@@ -6,7 +6,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../../services/api';
-import { Save, ArrowLeft, ExternalLink } from 'lucide-react';
+import { Save, ArrowLeft, ExternalLink, Upload } from 'lucide-react';
 
 const BADGE_COLORES = {
     TRIAL: { bg: 'rgba(162,112,53,0.15)', color: '#c89b5a', label: 'Trial' },
@@ -31,11 +31,16 @@ export default function MiBarberiaPage() {
                 setForm({
                     nombre: data.nombre || '',
                     descripcion: data.descripcion || '',
-                    logo: null,  // Archivo nuevo (File), empieza vacío
+                    logo: null,
                     imagen_portada: null,
                     telefono: data.telefono || '',
                     email: data.email || '',
                     direccion: data.direccion || '',
+                    hora_apertura_semana: data.hora_apertura_semana || '09:00:00',
+                    hora_cierre_semana: data.hora_cierre_semana || '19:00:00',
+                    abre_fines_de_semana: data.abre_fines_de_semana ?? true,
+                    hora_apertura_finde: data.hora_apertura_finde || '10:00:00',
+                    hora_cierre_finde: data.hora_cierre_finde || '14:00:00',
                 });
             })
             .catch(() => setError('No se pudo cargar la información de tu barbería.'))
@@ -43,9 +48,11 @@ export default function MiBarberiaPage() {
     }, []);
 
     const handleChange = (e) => {
-        const { name, value, files } = e.target;
-        if (files) {
+        const { name, value, files, type, checked } = e.target;
+        if (type === 'file' && files) {
             setForm(prev => ({ ...prev, [name]: files[0] }));
+        } else if (type === 'checkbox') {
+            setForm(prev => ({ ...prev, [name]: checked }));
         } else {
             setForm(prev => ({ ...prev, [name]: value }));
         }
@@ -60,13 +67,16 @@ export default function MiBarberiaPage() {
 
         const formData = new FormData();
         Object.keys(form).forEach(key => {
-            if (form[key]) {
+            const val = form[key];
+            if (val !== null && val !== undefined) {
                 // Solo enviar si es un File nuevo
-                if (form[key] instanceof File) {
-                    formData.append(key, form[key]);
-                } else if (typeof form[key] === 'string' && !['logo', 'imagen_portada'].includes(key)) {
-                    // texto normal (no URLs de imagen ya guardadas)
-                    formData.append(key, form[key]);
+                if (val instanceof File) {
+                    formData.append(key, val);
+                } else if (typeof val === 'boolean') {
+                    formData.append(key, val);
+                } else if (!['logo', 'imagen_portada'].includes(key)) {
+                    // texto normal (no URLs de imagen vacias)
+                    formData.append(key, val);
                 }
             }
         });
@@ -232,13 +242,22 @@ export default function MiBarberiaPage() {
                                         <img src={barberia.logo_url} alt="Logo" style={{ width: 100, borderRadius: 8, border: '1px solid #333', objectFit: 'cover' }} />
                                     </div>
                                 )}
-                                <input
-                                    className="form-input"
-                                    type="file"
-                                    accept="image/*"
-                                    name="logo"
-                                    onChange={handleChange}
-                                />
+                                <label style={{
+                                    display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer',
+                                    background: 'var(--bg-surface)', border: '1px dashed var(--border)',
+                                    padding: '12px 20px', borderRadius: '8px',
+                                    color: 'var(--text-secondary)', transition: 'all 0.2s'
+                                }}>
+                                    <Upload size={18} />
+                                    <span>{form.logo instanceof File ? form.logo.name : "Subir nuevo logo..."}</span>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        name="logo"
+                                        onChange={handleChange}
+                                        style={{ display: 'none' }}
+                                    />
+                                </label>
                             </div>
                             <div className="form-group">
                                 <label className="form-label">Imagen de Portada</label>
@@ -247,14 +266,60 @@ export default function MiBarberiaPage() {
                                         <img src={barberia.imagen_portada_url} alt="Portada" style={{ width: '100%', maxWidth: 280, borderRadius: 8, border: '1px solid #333', objectFit: 'cover' }} />
                                     </div>
                                 )}
-                                <input
-                                    className="form-input"
-                                    type="file"
-                                    accept="image/*"
-                                    name="imagen_portada"
-                                    onChange={handleChange}
-                                />
+                                <label style={{
+                                    display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer',
+                                    background: 'var(--bg-surface)', border: '1px dashed var(--border)',
+                                    padding: '12px 20px', borderRadius: '8px',
+                                    color: 'var(--text-secondary)', transition: 'all 0.2s'
+                                }}>
+                                    <Upload size={18} />
+                                    <span>{form.imagen_portada instanceof File ? form.imagen_portada.name : "Subir nueva portada..."}</span>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        name="imagen_portada"
+                                        onChange={handleChange}
+                                        style={{ display: 'none' }}
+                                    />
+                                </label>
                             </div>
+                        </div>
+                    </div>
+
+                    {/* Bloque: Horarios */}
+                    <div style={{ padding: '24px', background: '#111', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '14px' }}>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '1.5px', marginBottom: '20px', fontWeight: 600 }}>
+                            Horarios de Atención
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                <div className="form-group">
+                                    <label className="form-label">Hora Apertura (Lunes a Viernes)</label>
+                                    <input className="form-input" type="time" name="hora_apertura_semana" value={form.hora_apertura_semana || ''} onChange={handleChange} />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Hora Cierre (Lunes a Viernes)</label>
+                                    <input className="form-input" type="time" name="hora_cierre_semana" value={form.hora_cierre_semana || ''} onChange={handleChange} />
+                                </div>
+                            </div>
+
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem', color: 'var(--text-primary)', cursor: 'pointer' }}>
+                                <input type="checkbox" name="abre_fines_de_semana" checked={form.abre_fines_de_semana || false} onChange={handleChange} style={{ width: '18px', height: '18px', accentColor: 'var(--accent)' }} />
+                                <strong>¿Abres Fines de Semana? (Sábados y Domingos)</strong>
+                            </label>
+
+                            {form.abre_fines_de_semana && (
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '4px', paddingLeft: '28px' }}>
+                                    <div className="form-group">
+                                        <label className="form-label">Hora Apertura (Finde)</label>
+                                        <input className="form-input" type="time" name="hora_apertura_finde" value={form.hora_apertura_finde || ''} onChange={handleChange} />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Hora Cierre (Finde)</label>
+                                        <input className="form-input" type="time" name="hora_cierre_finde" value={form.hora_cierre_finde || ''} onChange={handleChange} />
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 

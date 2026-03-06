@@ -99,6 +99,8 @@ class BarberiaSerializer(serializers.ModelSerializer):
             'logo', 'logo_url', 'imagen_portada', 'imagen_portada_url',
             'telefono', 'email', 'direccion',
             'activo', 'creada_en',
+            'hora_apertura_semana', 'hora_cierre_semana',
+            'abre_fines_de_semana', 'hora_apertura_finde', 'hora_cierre_finde',
             'suscripcion_estado', 'suscripcion_trial_hasta',
         ]
         read_only_fields = ['id', 'slug', 'activo', 'creada_en', 'suscripcion_estado', 'suscripcion_trial_hasta', 'logo_url', 'imagen_portada_url']

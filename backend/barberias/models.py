@@ -17,6 +17,14 @@ class Barberia(models.Model):
     direccion = models.CharField(max_length=255, blank=True)
     
     activo = models.BooleanField(default=True)
+    
+    # Configuración de horarios
+    hora_apertura_semana = models.TimeField('Hora de apertura (L-V)', default='09:00:00')
+    hora_cierre_semana = models.TimeField('Hora de cierre (L-V)', default='19:00:00')
+    abre_fines_de_semana = models.BooleanField('¿Abre fines de semana?', default=True)
+    hora_apertura_finde = models.TimeField('Hora de apertura (S-D)', default='10:00:00')
+    hora_cierre_finde = models.TimeField('Hora de cierre (S-D)', default='14:00:00')
+
     creada_en = models.DateTimeField(auto_now_add=True)
     actualizada_en = models.DateTimeField(auto_now=True)
 
