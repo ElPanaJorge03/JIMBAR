@@ -6,7 +6,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
 
-// Clave pública VAPID (se genera una vez y se fija aquí)
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY || '';
 
 function urlBase64ToUint8Array(base64String) {
@@ -17,26 +16,36 @@ function urlBase64ToUint8Array(base64String) {
 }
 
 export function usePushNotifications() {
-    const [permiso, setPermiso] = useState(Notification.permission);
+    const [permiso, setPermiso] = useState(() => {
+        if ('Notification' in window) return Notification.permission;
+        return 'unsupported';
+    });
     const [suscrito, setSuscrito] = useState(false);
     const [cargando, setCargando] = useState(false);
+    const [error, setError] = useState(null);
+    const [exito, setExito] = useState(false);
+
+    const compatible = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
 
     // Verificar si ya hay suscripción activa al montar
     useEffect(() => {
-        if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+        if (!compatible) return;
         navigator.serviceWorker.ready.then(async (reg) => {
             const sub = await reg.pushManager.getSubscription();
             setSuscrito(!!sub);
-        });
-    }, []);
+        }).catch(() => { });
+    }, [compatible]);
 
     const suscribir = useCallback(async () => {
-        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-            alert('Tu navegador no soporta notificaciones push.');
+        setError(null);
+        setExito(false);
+
+        if (!compatible) {
+            setError('Tu navegador no soporta notificaciones push.');
             return;
         }
         if (!VAPID_PUBLIC_KEY) {
-            console.warn('VITE_VAPID_PUBLIC_KEY no configurado.');
+            setError('La clave VAPID no está configurada. Contacta al administrador.');
             return;
         }
 
@@ -45,12 +54,13 @@ export function usePushNotifications() {
             // 1. Pedir permiso
             const resultado = await Notification.requestPermission();
             setPermiso(resultado);
-            if (resultado !== 'granted') {
-                setCargando(false);
+            if (resultado === 'denied') {
+                setError('Permiso denegado. Actívalo en la configuración de tu navegador.');
                 return;
             }
+            if (resultado !== 'granted') return;
 
-            // 2. Registrar Service Worker si no está
+            // 2. Obtener SW listo
             const reg = await navigator.serviceWorker.ready;
 
             // 3. Suscribirse al push
@@ -62,15 +72,19 @@ export function usePushNotifications() {
             // 4. Enviar la suscripción al backend
             await api.post('/push/suscribir/', subscription.toJSON());
             setSuscrito(true);
+            setExito(true);
+            setTimeout(() => setExito(false), 3000);
         } catch (err) {
             console.error('Error suscribiendo a push:', err);
+            setError('No se pudo activar las notificaciones. Inténtalo de nuevo.');
         } finally {
             setCargando(false);
         }
-    }, []);
+    }, [compatible]);
 
     const desuscribir = useCallback(async () => {
-        if (!('serviceWorker' in navigator)) return;
+        setError(null);
+        if (!compatible) return;
         setCargando(true);
         try {
             const reg = await navigator.serviceWorker.ready;
@@ -82,10 +96,11 @@ export function usePushNotifications() {
             setSuscrito(false);
         } catch (err) {
             console.error('Error desuscribiendo:', err);
+            setError('No se pudo desactivar las notificaciones.');
         } finally {
             setCargando(false);
         }
-    }, []);
+    }, [compatible]);
 
-    return { permiso, suscrito, cargando, suscribir, desuscribir };
+    return { permiso, suscrito, cargando, error, exito, compatible, suscribir, desuscribir };
 }

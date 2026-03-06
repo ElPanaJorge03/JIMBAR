@@ -14,7 +14,7 @@ export default function DashboardCliente() {
     const [citas, setCitas] = useState([]);
     const [loading, setLoading] = useState(true);
     const { canInstall, triggerInstall } = usePWAInstall();
-    const { permiso, suscrito, cargando: cargandoPush, suscribir, desuscribir } = usePushNotifications();
+    const { permiso, suscrito, cargando: cargandoPush, error: pushError, exito: pushExito, suscribir, desuscribir } = usePushNotifications();
 
     useEffect(() => {
         const fetchCitas = async () => {
@@ -79,28 +79,36 @@ export default function DashboardCliente() {
 
                 {/* Acciones PWA / Notificaciones */}
                 {(canInstall || permiso !== 'denied') && (
-                    <div className="card" style={{ marginBottom: '24px', display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center', background: 'rgba(162,112,53,0.05)', border: '1px solid rgba(162,112,53,0.2)' }}>
-                        <div style={{ flex: 1, minWidth: '200px' }}>
-                            <h4 style={{ margin: 0, color: 'var(--accent)', fontSize: '0.95rem' }}>Configura tu experiencia</h4>
-                            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Instala la app o activa notificaciones para no olvidar tus citas.</p>
+                    <div className="card" style={{ marginBottom: '24px', display: 'flex', flexDirection: 'column', gap: '10px', background: 'rgba(162,112,53,0.05)', border: '1px solid rgba(162,112,53,0.2)' }}>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+                            <div style={{ flex: 1, minWidth: '200px' }}>
+                                <h4 style={{ margin: 0, color: 'var(--accent)', fontSize: '0.95rem' }}>Configura tu experiencia</h4>
+                                <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Instala la app o activa notificaciones para no olvidar tus citas.</p>
+                            </div>
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                {canInstall && (
+                                    <button onClick={triggerInstall} className="btn btn--secondary btn--sm" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <Download size={15} /> Instalar App
+                                    </button>
+                                )}
+                                {permiso !== 'denied' && (
+                                    <button
+                                        onClick={suscrito ? desuscribir : suscribir}
+                                        disabled={cargandoPush}
+                                        className="btn btn--outline btn--sm"
+                                        style={{ display: 'flex', alignItems: 'center', gap: '6px', borderColor: suscrito ? 'rgba(255,255,255,0.1)' : 'var(--accent)' }}
+                                    >
+                                        {cargandoPush
+                                            ? 'Procesando...'
+                                            : suscrito
+                                                ? <><BellOff size={15} /> Notif. Off</>
+                                                : <><Bell size={15} /> Activar Notif.</>}
+                                    </button>
+                                )}
+                            </div>
                         </div>
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                            {canInstall && (
-                                <button onClick={triggerInstall} className="btn btn--secondary btn--sm" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    <Download size={15} /> Instalar App
-                                </button>
-                            )}
-                            {permiso !== 'denied' && (
-                                <button
-                                    onClick={suscrito ? desuscribir : suscribir}
-                                    disabled={cargandoPush}
-                                    className="btn btn--outline btn--sm"
-                                    style={{ display: 'flex', alignItems: 'center', gap: '6px', borderColor: suscrito ? 'rgba(255,255,255,0.1)' : 'var(--accent)' }}
-                                >
-                                    {suscrito ? <><BellOff size={15} /> Notif. Off</> : <><Bell size={15} /> Activar Notif.</>}
-                                </button>
-                            )}
-                        </div>
+                        {pushError && <p style={{ margin: 0, fontSize: '0.8rem', color: '#ef4444' }}>{pushError}</p>}
+                        {pushExito && <p style={{ margin: 0, fontSize: '0.8rem', color: '#10b981' }}>Notificaciones activadas correctamente.</p>}
                     </div>
                 )}
 

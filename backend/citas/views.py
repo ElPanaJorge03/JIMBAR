@@ -338,9 +338,9 @@ class CitaCreateView(TenantMixin, generics.CreateAPIView):
             servicios_str = ', '.join(s.nombre for s in cita.servicios.all())
             notify_barberos_de_barberia(
                 barberia,
-                titulo=f"📅 Nueva cita agendada",
+                titulo="Nueva cita agendada",
                 cuerpo=f"{cita.cliente_nombre} — {servicios_str} — {cita.fecha.strftime('%d/%m')} {cita.hora_inicio.strftime('%H:%M')}",
-                url=f"/barbero/citas"
+                url="/barbero/citas"
             )
         except Exception as e:
             import logging; logging.getLogger(__name__).error(f"Push al barbero falló: {e}")
@@ -429,7 +429,7 @@ class CitaCancelarView(TenantMixin, APIView):
             from push.notify import notify_barberos_de_barberia
             notify_barberos_de_barberia(
                 cita.barberia,
-                titulo=f"❌ Cita cancelada",
+                titulo="Cita cancelada",
                 cuerpo=f"{cita.cliente_nombre} canceló su cita del {cita.fecha.strftime('%d/%m')} a las {cita.hora_inicio.strftime('%H:%M')}",
                 url="/barbero/citas"
             )
@@ -511,10 +511,10 @@ class CitaEstadoView(TenantMixin, APIView):
                     from push.notify import notify_usuario
                     servicios_str = ', '.join(s.nombre for s in cita.servicios.all())
                     if nuevo_estado == 'CONFIRMADA':
-                        titulo = "¡Cita confirmada! ✅"
+                        titulo = "Cita confirmada"
                         cuerpo = f"Tu cita para {servicios_str} el {cita.fecha.strftime('%d/%m')} a las {cita.hora_inicio.strftime('%H:%M')} ha sido confirmada."
                     else:
-                        titulo = "Cita no disponible ❌"
+                        titulo = "Cita no disponible"
                         cuerpo = f"Lamentamos informarte que tu cita para {servicios_str} no pudo ser agendada."
                     
                     notify_usuario(cita.usuario, titulo=titulo, cuerpo=cuerpo, url="/cliente/citas")

@@ -36,7 +36,7 @@ def enviar_recordatorio_push(cita_id):
         from push.notify import notify_barberos_de_barberia
         notify_barberos_de_barberia(
             cita.barberia,
-            titulo="⏰ Cita en 1.5 horas",
+            titulo="Recordatorio de cita",
             cuerpo=f"{cita.cliente_nombre} — {servicios_str} a las {hora_str}",
             url="/barbero/citas"
         )
@@ -49,8 +49,8 @@ def enviar_recordatorio_push(cita_id):
             from push.notify import notify_usuario
             notify_usuario(
                 cita.usuario,
-                titulo=f"⏰ Recordatorio — {fecha_str} a las {hora_str}",
-                cuerpo=f"Tu {servicios_str} es en 1 hora y media. ¡Prepárate!",
+                titulo=f"Recordatorio — {fecha_str} a las {hora_str}",
+                cuerpo=f"Tu cita de {servicios_str} es en 1 hora y media.",
                 url="/cliente/citas"
             )
     except Exception as e:
@@ -93,8 +93,8 @@ def confirmar_cita_automaticamente(cita_id):
             servicios_str = ', '.join(s.nombre for s in cita.servicios.all())
             notify_usuario(
                 cita.usuario,
-                titulo="¡Cita confirmada! ✅",
-                cuerpo=f"Tu cita para {servicios_str} el {cita.fecha.strftime('%d/%m')} ha sido confirmada automáticamente.",
+                titulo="Cita confirmada",
+                cuerpo=f"Tu cita para {servicios_str} el {cita.fecha.strftime('%d/%m')} ha sido confirmada.",
                 url="/cliente/citas"
             )
         except Exception as e:

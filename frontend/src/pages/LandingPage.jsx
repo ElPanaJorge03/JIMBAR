@@ -46,7 +46,7 @@ export default function LandingPage() {
                         border: '1px solid rgba(162,112,53,0.2)',
                         marginBottom: '16px',
                     }}>
-                        Jimbar Software
+                        Jimbar
                     </span>
                     <h1 style={{
                         fontSize: 'clamp(3rem, 10vw, 5rem)',
@@ -57,7 +57,7 @@ export default function LandingPage() {
                         margin: '0 auto',
                         maxWidth: '800px'
                     }}>
-                        El Sistema Definitivo para <span style={{ color: 'var(--accent)' }}>Barberos a Domicilio</span>
+                        El Sistema Definitivo para <span style={{ color: 'var(--accent)' }}>Barberos</span>
                     </h1>
                 </div>
 
@@ -119,7 +119,7 @@ export default function LandingPage() {
                 <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
                     <h2 style={{ marginBottom: '16px', fontSize: '2.5rem', color: '#fff' }}>¿Por qué usar Jimbar?</h2>
                     <p style={{ marginBottom: '48px', color: '#888', fontSize: '1.1rem' }}>
-                        Diseñado específicamente para las necesidades de los barberos móviles.
+                        Diseñado específicamente para las necesidades de los barberos.
                     </p>
 
                     <div style={{
@@ -132,7 +132,7 @@ export default function LandingPage() {
                                 id: 1,
                                 icono: <Link2 size={32} color="var(--accent)" />,
                                 titulo: 'Tu propio enlace',
-                                desc: 'Recibe un enlace tipo jimbar.app/tu-nombre y compártelo en tu Instagram o WhatsApp.'
+                                desc: 'Recibe un enlace tipo jimbar.app/tu-barberia y compártelo en tu Instagram o WhatsApp.'
                             },
                             {
                                 id: 2,
