@@ -13,6 +13,51 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task
+def enviar_recordatorio_push(cita_id):
+    """
+    Se ejecuta 1.5h antes de la cita.
+    Envía notificación push al barbero y al cliente (si está registrado).
+    """
+    from .models import Cita
+    try:
+        cita = Cita.objects.prefetch_related('servicios').select_related('usuario', 'barberia').get(id=cita_id)
+    except Cita.DoesNotExist:
+        return
+
+    if cita.estado in ['CANCELADA', 'RECHAZADA']:
+        return  # No recordar citas que ya no van
+
+    servicios_str = ', '.join(s.nombre for s in cita.servicios.all())
+    hora_str = cita.hora_inicio.strftime('%H:%M')
+    fecha_str = cita.fecha.strftime('%d/%m')
+
+    # Push al barbero
+    try:
+        from push.notify import notify_barberos_de_barberia
+        notify_barberos_de_barberia(
+            cita.barberia,
+            titulo="⏰ Cita en 1.5 horas",
+            cuerpo=f"{cita.cliente_nombre} — {servicios_str} a las {hora_str}",
+            url="/barbero/citas"
+        )
+    except Exception as e:
+        logger.error(f"Recordatorio push al barbero falló: {e}")
+
+    # Push al cliente (si tiene cuenta y suscripción)
+    try:
+        if cita.usuario_id:
+            from push.notify import notify_usuario
+            notify_usuario(
+                cita.usuario,
+                titulo=f"⏰ Recordatorio — {fecha_str} a las {hora_str}",
+                cuerpo=f"Tu {servicios_str} es en 1 hora y media. ¡Prepárate!",
+                url="/cliente/citas"
+            )
+    except Exception as e:
+        logger.error(f"Recordatorio push al cliente falló: {e}")
+
+
+@shared_task
 def confirmar_cita_automaticamente(cita_id):
     """
     Se llama 15 minutos después de crear una cita.
@@ -40,6 +85,20 @@ def confirmar_cita_automaticamente(cita_id):
 
     # Notificar al cliente
     _enviar_correo_confirmacion(cita, automatica=True)
+
+    # Notificar al cliente por PUSH (si tiene cuenta)
+    if cita.usuario_id:
+        try:
+            from push.notify import notify_usuario
+            servicios_str = ', '.join(s.nombre for s in cita.servicios.all())
+            notify_usuario(
+                cita.usuario,
+                titulo="¡Cita confirmada! ✅",
+                cuerpo=f"Tu cita para {servicios_str} el {cita.fecha.strftime('%d/%m')} ha sido confirmada automáticamente.",
+                url="/cliente/citas"
+            )
+        except Exception as e:
+            logger.error(f"Push de confirmación automática falló: {e}")
 
 
 @shared_task

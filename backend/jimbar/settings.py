@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     # Apps del proyecto
     'citas',
     'barberias',
+    'push',
 ]
 
 MIDDLEWARE = [
@@ -237,3 +238,8 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 if os.getenv('CLOUDINARY_URL'):
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+# ============================================================
+# VAPID (Push Notifications)
+# ============================================================
+VAPID_PUBLIC_KEY  = os.getenv('VAPID_PUBLIC_KEY', '')
+VAPID_PRIVATE_KEY = os.getenv('VAPID_PRIVATE_KEY', '')

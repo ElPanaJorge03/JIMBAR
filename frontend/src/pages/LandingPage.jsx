@@ -4,11 +4,13 @@
  */
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Sparkles, CalendarCheck, MapPin, ShieldCheck, Link2 } from 'lucide-react';
+import { Sparkles, CalendarCheck, MapPin, ShieldCheck, Link2, Download } from 'lucide-react';
+import { usePWAInstall } from '../hooks/usePWAInstall';
 
 export default function LandingPage() {
     const navigate = useNavigate();
     const { authenticated, role } = useAuth();
+    const { canInstall, triggerInstall } = usePWAInstall();
 
     // Si alguien de Jimbar ya está logueado, llevarlo a su dashboard
     if (authenticated) {
@@ -91,6 +93,24 @@ export default function LandingPage() {
                     >
                         Ya tengo una cuenta
                     </button>
+
+                    {canInstall && (
+                        <button
+                            onClick={triggerInstall}
+                            style={{
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                                background: 'rgba(162,112,53,0.08)',
+                                border: '1px solid rgba(162,112,53,0.3)',
+                                color: 'var(--accent)',
+                                padding: '14px', borderRadius: '10px',
+                                fontSize: '1rem', fontWeight: 600, cursor: 'pointer',
+                                width: '100%', transition: 'all 0.2s',
+                                minHeight: '48px',
+                            }}
+                        >
+                            <Download size={18} /> Instalar app
+                        </button>
+                    )}
                 </div>
             </section>
 

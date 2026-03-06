@@ -24,4 +24,7 @@ urlpatterns = [
     # ── API principal (Citas/Multi-Tenant) ─────────────────────
     path('api/', include('citas.urls')),
     path('api/<slug:slug>/', include('citas.urls')),
+
+    # ── Push Notifications ──────────────────────────────────────
+    path('api/push/', include('push.urls')),
 ]

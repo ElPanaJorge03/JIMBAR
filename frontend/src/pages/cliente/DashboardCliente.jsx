@@ -4,12 +4,17 @@ import { useAuth } from '../../context/AuthContext';
 import { LogOut } from 'lucide-react';
 import api from '../../services/api';
 import dayjs from 'dayjs';
+import { usePWAInstall } from '../../hooks/usePWAInstall';
+import { usePushNotifications } from '../../hooks/usePushNotifications';
+import { Download, Bell, BellOff } from 'lucide-react';
 
 export default function DashboardCliente() {
     const { logout } = useAuth();
     const navigate = useNavigate();
     const [citas, setCitas] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { canInstall, triggerInstall } = usePWAInstall();
+    const { permiso, suscrito, cargando: cargandoPush, suscribir, desuscribir } = usePushNotifications();
 
     useEffect(() => {
         const fetchCitas = async () => {
@@ -71,6 +76,33 @@ export default function DashboardCliente() {
                         Nueva Cita
                     </Link>
                 </div>
+
+                {/* Acciones PWA / Notificaciones */}
+                {(canInstall || permiso !== 'denied') && (
+                    <div className="card" style={{ marginBottom: '24px', display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center', background: 'rgba(162,112,53,0.05)', border: '1px solid rgba(162,112,53,0.2)' }}>
+                        <div style={{ flex: 1, minWidth: '200px' }}>
+                            <h4 style={{ margin: 0, color: 'var(--accent)', fontSize: '0.95rem' }}>Configura tu experiencia</h4>
+                            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Instala la app o activa notificaciones para no olvidar tus citas.</p>
+                        </div>
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                            {canInstall && (
+                                <button onClick={triggerInstall} className="btn btn--secondary btn--sm" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <Download size={15} /> Instalar App
+                                </button>
+                            )}
+                            {permiso !== 'denied' && (
+                                <button
+                                    onClick={suscrito ? desuscribir : suscribir}
+                                    disabled={cargandoPush}
+                                    className="btn btn--outline btn--sm"
+                                    style={{ display: 'flex', alignItems: 'center', gap: '6px', borderColor: suscrito ? 'rgba(255,255,255,0.1)' : 'var(--accent)' }}
+                                >
+                                    {suscrito ? <><BellOff size={15} /> Notif. Off</> : <><Bell size={15} /> Activar Notif.</>}
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                )}
 
                 {loading ? (
                     <div style={{ textAlign: 'center', padding: '40px 0' }}>

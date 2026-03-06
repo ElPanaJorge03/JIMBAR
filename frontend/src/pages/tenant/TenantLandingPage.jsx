@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Navigate } from 'react-router-dom';
 import { getBarberiaInfo } from '../../services/citasService';
-import { Scissors, Fingerprint, Sparkles, User, Star } from 'lucide-react';
+import { Scissors, Fingerprint, Sparkles, User, Star, Download, Bell, BellOff } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { usePWAInstall } from '../../hooks/usePWAInstall';
+import { usePushNotifications } from '../../hooks/usePushNotifications';
 
 export default function TenantLandingPage() {
     const { slug } = useParams();
@@ -12,6 +14,8 @@ export default function TenantLandingPage() {
     const [barberia, setBarberia] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
+    const { canInstall, triggerInstall } = usePWAInstall();
+    const { permiso, suscrito, cargando: cargandoPush, suscribir, desuscribir } = usePushNotifications();
 
     useEffect(() => {
         getBarberiaInfo(slug)
@@ -138,6 +142,44 @@ export default function TenantLandingPage() {
                     >
                         Mis Citas
                     </button>
+
+                    {/* Instalar App */}
+                    {canInstall && (
+                        <button
+                            onClick={triggerInstall}
+                            style={{
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                                background: 'rgba(162,112,53,0.08)',
+                                border: '1px solid rgba(162,112,53,0.3)',
+                                color: 'var(--accent)',
+                                padding: '12px', borderRadius: '10px',
+                                fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer',
+                                width: '100%', transition: 'all 0.2s'
+                            }}
+                        >
+                            <Download size={17} /> Instalar app
+                        </button>
+                    )}
+
+                    {/* Activar Notificaciones */}
+                    {permiso !== 'denied' && (
+                        <button
+                            onClick={suscrito ? desuscribir : suscribir}
+                            disabled={cargandoPush}
+                            style={{
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                                background: suscrito ? 'rgba(255,255,255,0.04)' : 'rgba(162,112,53,0.08)',
+                                border: `1px solid ${suscrito ? 'rgba(255,255,255,0.1)' : 'rgba(162,112,53,0.3)'}`,
+                                color: suscrito ? '#888' : 'var(--accent)',
+                                padding: '12px', borderRadius: '10px',
+                                fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer',
+                                width: '100%', transition: 'all 0.2s',
+                                opacity: cargandoPush ? 0.6 : 1
+                            }}
+                        >
+                            {suscrito ? <><BellOff size={17} /> Desactivar notificaciones</> : <><Bell size={17} /> Activar notificaciones</>}
+                        </button>
+                    )}
                 </div>
             </section>
 

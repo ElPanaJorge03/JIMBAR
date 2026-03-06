@@ -321,15 +321,41 @@ class CitaCreateView(TenantMixin, generics.CreateAPIView):
         return context
 
     def perform_create(self, serializer):
-        cita = serializer.save(barberia=self.get_barberia())
+        barberia = self.get_barberia()
+        cita = serializer.save(barberia=barberia)
 
         if self.request.user.is_authenticated:
             cita.usuario = self.request.user
             cita.save()
 
-        # Notificar al barbero en background (si falla el email, la cita ya se guardó)
+        # Notificar al barbero por email (background)
         origen_url = self.request.META.get('HTTP_ORIGIN', '')
         _en_background(enviar_correo_nueva_cita, cita.id, origen_url)
+
+        # Notificar al barbero por PUSH
+        try:
+            from push.notify import notify_barberos_de_barberia
+            servicios_str = ', '.join(s.nombre for s in cita.servicios.all())
+            notify_barberos_de_barberia(
+                barberia,
+                titulo=f"📅 Nueva cita agendada",
+                cuerpo=f"{cita.cliente_nombre} — {servicios_str} — {cita.fecha.strftime('%d/%m')} {cita.hora_inicio.strftime('%H:%M')}",
+                url=f"/barbero/citas"
+            )
+        except Exception as e:
+            import logging; logging.getLogger(__name__).error(f"Push al barbero falló: {e}")
+
+        # Programar recordatorio 1.5h antes para barbero y cliente
+        try:
+            from citas.tasks import enviar_recordatorio_push
+            from datetime import datetime, timedelta
+            from django.utils import timezone as tz
+            hora_cita_dt = tz.make_aware(datetime.combine(cita.fecha, cita.hora_inicio))
+            recordatorio_en = hora_cita_dt - timedelta(minutes=90)
+            if recordatorio_en > tz.now():
+                enviar_recordatorio_push.apply_async(args=[cita.id], eta=recordatorio_en)
+        except Exception as e:
+            import logging; logging.getLogger(__name__).error(f"Programar recordatorio falló: {e}")
 
 
 class CitaClienteListView(generics.ListAPIView):
@@ -398,6 +424,31 @@ class CitaCancelarView(TenantMixin, APIView):
 
         _en_background(enviar_correo_cancelacion_cliente, cita.id)
 
+        # Push al barbero: el cliente canceló
+        try:
+            from push.notify import notify_barberos_de_barberia
+            notify_barberos_de_barberia(
+                cita.barberia,
+                titulo=f"❌ Cita cancelada",
+                cuerpo=f"{cita.cliente_nombre} canceló su cita del {cita.fecha.strftime('%d/%m')} a las {cita.hora_inicio.strftime('%H:%M')}",
+                url="/barbero/citas"
+            )
+        except Exception as e:
+            import logging; logging.getLogger(__name__).error(f"Push cancelación falló: {e}")
+
+        # Push al cliente (si tiene cuenta)
+        try:
+            if cita.usuario_id:
+                from push.notify import notify_usuario
+                notify_usuario(
+                    cita.usuario,
+                    titulo="Cita cancelada",
+                    cuerpo="Tu cita ha sido cancelada correctamente.",
+                    url="/cliente/citas"
+                )
+        except Exception:
+            pass
+
         return Response({'mensaje': 'Cita cancelada exitosamente.'})
 
 
@@ -453,6 +504,22 @@ class CitaEstadoView(TenantMixin, APIView):
             cita.save()
 
             _en_background(enviar_correo_estado_cita, cita.id, nuevo_estado)
+
+            # Notificar al cliente por PUSH (si tiene cuenta)
+            if cita.usuario_id and nuevo_estado in ['CONFIRMADA', 'RECHAZADA']:
+                try:
+                    from push.notify import notify_usuario
+                    servicios_str = ', '.join(s.nombre for s in cita.servicios.all())
+                    if nuevo_estado == 'CONFIRMADA':
+                        titulo = "¡Cita confirmada! ✅"
+                        cuerpo = f"Tu cita para {servicios_str} el {cita.fecha.strftime('%d/%m')} a las {cita.hora_inicio.strftime('%H:%M')} ha sido confirmada."
+                    else:
+                        titulo = "Cita no disponible ❌"
+                        cuerpo = f"Lamentamos informarte que tu cita para {servicios_str} no pudo ser agendada."
+                    
+                    notify_usuario(cita.usuario, titulo=titulo, cuerpo=cuerpo, url="/cliente/citas")
+                except Exception as e:
+                    import logging; logging.getLogger(__name__).error(f"Push cambio de estado falló: {e}")
 
             return Response(CitaSerializer(cita).data)
 

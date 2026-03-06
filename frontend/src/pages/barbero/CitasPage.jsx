@@ -10,8 +10,10 @@ import {
     ClipboardList, CalendarOff,
     CheckCircle, XCircle, CheckSquare,
     Phone, MapPin, FileText, Scissors,
-    LogOut, Settings,
+    LogOut, Settings, Bell, BellOff, Download,
 } from 'lucide-react';
+import { usePWAInstall } from '../../hooks/usePWAInstall';
+import { usePushNotifications } from '../../hooks/usePushNotifications';
 import { getCitas, cambiarEstadoCita } from '../../services/citasService';
 import { useAuth } from '../../context/AuthContext';
 import BloqueosPanel from '../../components/barbero/BloqueosPanel';
@@ -32,6 +34,8 @@ export default function CitasPage() {
     const { logout, role } = useAuth();
     const navigate = useNavigate();
     const [pesta, setPesta] = useState('citas'); // 'citas' | 'bloqueos'
+    const { canInstall, triggerInstall } = usePWAInstall();
+    const { permiso, suscrito, cargando: cargandoPush, suscribir, desuscribir } = usePushNotifications();
 
     const esAdmin = ['BARBERIA_ADMIN', 'SUPERADMIN'].includes(role);
 
@@ -83,6 +87,53 @@ export default function CitasPage() {
             </header>
 
             <div className="container--wide">
+                {/* Banner de Notificaciones / PWA */}
+                {(canInstall || (!suscrito && permiso !== 'denied')) && (
+                    <div style={{
+                        background: 'rgba(162,112,53,0.1)',
+                        border: '1px solid rgba(162,112,53,0.3)',
+                        padding: '12px 20px',
+                        borderRadius: '12px',
+                        marginBottom: '24px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: '16px',
+                        flexWrap: 'wrap'
+                    }}>
+                        <div>
+                            <strong style={{ color: 'var(--accent)', fontSize: '0.95rem', display: 'block' }}>🚀 ¡No pierdas ni una cita!</strong>
+                            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Activa las notificaciones push para recibir alertas al instante.</span>
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                            {canInstall && (
+                                <button onClick={triggerInstall} className="btn btn--sm btn--secondary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <Download size={14} /> Instalar App
+                                </button>
+                            )}
+                            {!suscrito && permiso !== 'denied' && (
+                                <button
+                                    onClick={suscribir}
+                                    disabled={cargandoPush}
+                                    className="btn btn--sm btn--primary"
+                                    style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                                >
+                                    <Bell size={14} /> Activar Notificaciones
+                                </button>
+                            )}
+                            {suscrito && (
+                                <button
+                                    onClick={desuscribir}
+                                    disabled={cargandoPush}
+                                    className="btn btn--sm btn--ghost"
+                                    style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', opacity: 0.6 }}
+                                >
+                                    <BellOff size={12} /> Desactivar
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                )}
                 {/* ── Pestañas de navegación ─────────────────── */}
                 <div style={{
                     display: 'flex',
