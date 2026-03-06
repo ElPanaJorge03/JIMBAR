@@ -224,7 +224,7 @@ class DisponibilidadView(TenantMixin, APIView):
     """
     permission_classes = [AllowAny]
 
-    def get(self, request):
+    def get(self, request, *args, **kwargs):
         fecha_str = request.query_params.get('fecha')
         servicios_ids_str = request.query_params.get('servicios_ids')
 
