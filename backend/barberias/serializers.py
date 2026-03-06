@@ -1,0 +1,82 @@
+from rest_framework import serializers
+from django.contrib.auth.models import User
+from django.utils.text import slugify
+from .models import Barberia, Suscripcion, PerfilUsuario
+from django.db import transaction
+
+class RegistroBarberiaSerializer(serializers.Serializer):
+    """
+    Serializer para el onboarding de una nueva Barbería (Tenant).
+    Crea el User, PerfilUsuario, Barberia y Suscripcion en TRIAL de 15 días.
+    """
+    # Datos de usuario (Admin de la barbería)
+    admin_nombre = serializers.CharField(max_length=150)
+    admin_email = serializers.EmailField()
+    admin_password = serializers.CharField(write_only=True, min_length=6)
+    
+    # Datos de la barbería (Tenant)
+    barberia_nombre = serializers.CharField(max_length=150)
+    barberia_slug = serializers.SlugField(max_length=150, required=False)
+
+    def validate_admin_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Este correo ya está registrado.")
+        return value.lower()
+        
+    def validate_barberia_slug(self, value):
+        if Barberia.objects.filter(slug=value).exists():
+            raise serializers.ValidationError("Ese nombre de enlace (slug) ya está en uso. Intenta otro.")
+        return value
+
+    def create(self, validated_data):
+        with transaction.atomic():
+            # 1. Crear usuario Django
+            user = User.objects.create_user(
+                username=validated_data['admin_email'],
+                email=validated_data['admin_email'],
+                first_name=validated_data['admin_nombre'],
+                password=validated_data['admin_password'],
+            )
+
+            # 2. Determinar slug (generar de barberia_nombre si no se provee)
+            slug = validated_data.get('barberia_slug')
+            if not slug:
+                slug = slugify(validated_data['barberia_nombre'])
+                # Manejar colisiones básicas en auto-generación
+                original_slug = slug
+                counter = 1
+                while Barberia.objects.filter(slug=slug).exists():
+                    slug = f"{original_slug}-{counter}"
+                    counter += 1
+
+            # 3. Crear Barbería
+            barberia = Barberia.objects.create(
+                nombre=validated_data['barberia_nombre'],
+                slug=slug,
+                email=validated_data['admin_email'],
+            )
+
+            # 4. Crear PerfilUsuario ligado al admin y la barbería
+            PerfilUsuario.objects.create(
+                user=user,
+                role=PerfilUsuario.Rol.BARBERIA_ADMIN,
+                barberia=barberia
+            )
+
+            # 5. Crear Suscripción (automáticamente entra en TRIAL por default)
+            from datetime import timedelta
+            from django.utils import timezone
+            
+            # 15 días de prueba a partir de ahora, hora local
+            trial_hasta = timezone.localtime(timezone.now()) + timedelta(days=15)
+            Suscripcion.objects.create(
+                barberia=barberia,
+                estado=Suscripcion.Estado.TRIAL,
+                trial_hasta=trial_hasta
+            )
+
+            return {
+                'barberia_slug': barberia.slug,
+                'barberia_nombre': barberia.nombre,
+                'admin_email': user.email
+            }

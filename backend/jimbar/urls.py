@@ -18,7 +18,10 @@ urlpatterns = [
     path('api/auth/token/', CustomTokenObtainPairView.as_view(), name='token-obtain'),
     path('api/auth/token/refresh/', TokenRefreshView.as_view(), name='token-refresh'),
 
-    # ── API principal ──────────────────────────────────────────
+    # ── API principal (Barberías/Onboarding) ───────────────────
+    path('api/', include('barberias.urls')),
+
+    # ── API principal (Citas/Multi-Tenant) ─────────────────────
     path('api/', include('citas.urls')),
     path('api/<slug:slug>/', include('citas.urls')),
 ]
