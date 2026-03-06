@@ -220,6 +220,36 @@ class RegistroClienteSerializer(serializers.ModelSerializer):
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)
-        # Añadir al JSON de respuesta (no al payload oculto del token)
-        data['is_barbero'] = self.user.is_superuser or self.user.is_staff
+        
+        user = self.user
+        role = 'CLIENTE' # Defecto fallback
+        barberia_slug = None
+        barberia_nombre = None
+        
+        if hasattr(user, 'perfil'):
+            role = user.perfil.role
+            if user.perfil.barberia:
+                barberia_slug = user.perfil.barberia.slug
+                barberia_nombre = user.perfil.barberia.nombre
+        else:
+            # Compatibilidad si un user (admin o staff) no tiene PerfilUsuario
+            if user.is_superuser:
+                role = 'SUPERADMIN'
+            elif user.is_staff:
+                role = 'BARBERIA_ADMIN'
+                # Por retrocompatibilidad asumiremos la primera
+                from barberias.models import Barberia
+                b = Barberia.objects.first()
+                if b:
+                    barberia_slug = b.slug
+                    barberia_nombre = b.nombre
+        
+        # Añadir payload expuesto
+        data['role'] = role
+        data['barberia_slug'] = barberia_slug
+        data['barberia_nombre'] = barberia_nombre
+        
+        # Opcional pero recomendado para retrocompatibilidad con frontend viejo
+        data['is_barbero'] = role in ['SUPERADMIN', 'BARBERIA_ADMIN', 'BARBERO']
+        
         return data

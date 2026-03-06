@@ -21,7 +21,8 @@ export default function ClienteLoginPage() {
         try {
             const data = await login(form.email.toLowerCase(), form.password);
 
-            if (data.role === 'barbero') {
+            if (['BARBERIA_ADMIN', 'SUPERADMIN', 'BARBERO', 'barbero'].includes(data.role)) {
+                // Si alguien del sistema (admin/barbero) usa este logín por error
                 navigate('/barbero/citas', { replace: true });
             } else {
                 navigate('/cliente/citas', { replace: true });

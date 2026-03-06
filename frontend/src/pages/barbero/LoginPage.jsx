@@ -18,7 +18,9 @@ export default function LoginPage() {
         setLoading(true);
         try {
             const data = await login(form.username, form.password);
-            if (data.role === 'barbero') {
+            if (['BARBERIA_ADMIN', 'SUPERADMIN', 'BARBERO', 'barbero'].includes(data.role)) {
+                // TODO: Dependiendo si es superadmin va a una ruta, sino a otra.
+                // Por ahora todos van a /barbero/citas
                 navigate('/barbero/citas', { replace: true });
             } else {
                 navigate('/cliente/citas', { replace: true });

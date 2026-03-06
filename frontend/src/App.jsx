@@ -39,7 +39,7 @@ export default function App() {
           <Route
             path="/cliente/citas"
             element={
-              <ProtectedRoute allowedRoles={['cliente']}>
+              <ProtectedRoute allowedRoles={['CLIENTE', 'cliente']}>
                 <DashboardCliente />
               </ProtectedRoute>
             }
@@ -50,7 +50,7 @@ export default function App() {
           <Route
             path="/barbero/citas"
             element={
-              <ProtectedRoute allowedRoles={['barbero']}>
+              <ProtectedRoute allowedRoles={['SUPERADMIN', 'BARBERIA_ADMIN', 'BARBERO', 'barbero']}>
                 <CitasPage />
               </ProtectedRoute>
             }
