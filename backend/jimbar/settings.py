@@ -15,7 +15,10 @@ load_dotenv()
 
 # Limpiar CLOUDINARY_URL por si el usuario lo pegó en Railway o .env con espacios o comillas
 if 'CLOUDINARY_URL' in os.environ:
-    os.environ['CLOUDINARY_URL'] = os.environ['CLOUDINARY_URL'].strip(' \t\n\r"\'')
+    val = os.environ['CLOUDINARY_URL'].strip(' \t\n\r"\'')
+    if val.startswith('CLOUDINARY_URL='):
+        val = val.replace('CLOUDINARY_URL=', '', 1)
+    os.environ['CLOUDINARY_URL'] = val
 
 # Directorio raíz del proyecto (donde está manage.py)
 BASE_DIR = Path(__file__).resolve().parent.parent
