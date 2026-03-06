@@ -5,21 +5,25 @@ import api from './api';
 
 // ── Público ──────────────────────────────────────────────────
 
-/** Obtiene la lista de servicios activos */
-export const getServicios = () =>
-    api.get('/servicios/').then((r) => r.data);
+/** Info pública del tenant/barbería */
+export const getBarberiaInfo = (slug) =>
+    api.get(`/${slug}/info/`).then((r) => r.data);
+
+/** Obtiene la lista de servicios activos de una barbería */
+export const getServicios = (slug) =>
+    api.get(`/${slug}/servicios/`).then((r) => r.data);
 
 /** Obtiene los slots disponibles para una fecha y servicio */
-export const getDisponibilidad = (fecha, servicioId) =>
-    api.get('/disponibilidad/', { params: { fecha, servicio_id: servicioId } }).then((r) => r.data);
+export const getDisponibilidad = (slug, fecha, servicioId) =>
+    api.get(`/${slug}/disponibilidad/`, { params: { fecha, servicio_id: servicioId } }).then((r) => r.data);
 
-/** Crea una nueva cita */
-export const crearCita = (datos) =>
-    api.post('/citas/', datos).then((r) => r.data);
+/** Crea una nueva cita para una barbería específica */
+export const crearCita = (slug, datos) =>
+    api.post(`/${slug}/citas/`, datos).then((r) => r.data);
 
-/** Cancela una cita (el cliente la identifica con su correo) */
-export const cancelarCita = (citaId, correo) =>
-    api.post(`/citas/${citaId}/cancelar/`, { correo }).then((r) => r.data);
+/** Cancela una cita (el cliente la identifica con su correo y slug de barberia) */
+export const cancelarCita = (slug, citaId, correo) =>
+    api.post(`/${slug}/citas/${citaId}/cancelar/`, { correo }).then((r) => r.data);
 
 // ── Barbero (requiere JWT) ────────────────────────────────────
 

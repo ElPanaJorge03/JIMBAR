@@ -5,7 +5,7 @@
 import { useState } from 'react';
 import { crearCita } from '../../services/citasService';
 
-export default function PasoDatos({ seleccion, onSiguiente, onAnterior }) {
+export default function PasoDatos({ slug, seleccion, onSiguiente, onAnterior }) {
     const [form, setForm] = useState({
         nombre: '',
         telefono: '',
@@ -44,7 +44,7 @@ export default function PasoDatos({ seleccion, onSiguiente, onAnterior }) {
                 notas: form.notas.trim(),
             };
 
-            const citaCreada = await crearCita(payload);
+            const citaCreada = await crearCita(slug || 'jimbar', payload);
             onSiguiente(form, citaCreada);
         } catch (err) {
             // El backend devuelve errores de validación en err.response.data

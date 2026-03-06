@@ -8,7 +8,7 @@
  *  4. Confirmación
  */
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import PasoServicio from '../components/agendar/PasoServicio';
 import PasoFechaHora from '../components/agendar/PasoFechaHora';
 import PasoDatos from '../components/agendar/PasoDatos';
@@ -19,6 +19,7 @@ const PASOS = ['Servicio', 'Fecha y hora', 'Tus datos', 'Confirmación'];
 import { Check } from 'lucide-react';
 
 export default function AgendarPage() {
+    const { slug } = useParams();
     const navigate = useNavigate();
     const [paso, setPaso] = useState(0);
     const [seleccion, setSeleccion] = useState({
@@ -48,7 +49,7 @@ export default function AgendarPage() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                         <button
                             className="btn btn--ghost"
-                            onClick={() => navigate('/')}
+                            onClick={() => navigate(`/${slug || ''}`)}
                             style={{ padding: '0 8px', fontSize: '1.25rem' }}
                             title="Volver"
                         >
@@ -60,7 +61,7 @@ export default function AgendarPage() {
                             color: 'var(--accent)',
                             letterSpacing: '-0.5px',
                         }}>
-                            JIMBAR
+                            AGENDAMIENTO
                         </span>
                         <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>
                             · Barbería a domicilio
@@ -81,11 +82,13 @@ export default function AgendarPage() {
                 <div className="fade-in" key={paso}>
                     {paso === 0 && (
                         <PasoServicio
+                            slug={slug}
                             onSiguiente={(servicio) => siguiente({ servicio })}
                         />
                     )}
                     {paso === 1 && (
                         <PasoFechaHora
+                            slug={slug}
                             servicio={seleccion.servicio}
                             onSiguiente={(fecha, slot) => siguiente({ fecha, slot })}
                             onAnterior={anterior}
@@ -93,6 +96,7 @@ export default function AgendarPage() {
                     )}
                     {paso === 2 && (
                         <PasoDatos
+                            slug={slug}
                             seleccion={seleccion}
                             onSiguiente={(datos, citaCreada) => siguiente({ datos, citaCreada })}
                             onAnterior={anterior}
@@ -100,6 +104,7 @@ export default function AgendarPage() {
                     )}
                     {paso === 3 && (
                         <PasoConfirmacion
+                            slug={slug}
                             seleccion={seleccion}
                             onNuevaCita={() => {
                                 setSeleccion({ servicio: null, fecha: null, slot: null, datos: null, citaCreada: null });

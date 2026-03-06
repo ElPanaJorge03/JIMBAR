@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 
 export default function CancelarPage() {
-    const { id } = useParams();
+    const { slug, id } = useParams();
     const navigate = useNavigate();
     const [correo, setCorreo] = useState('');
     const [estado, setEstado] = useState('idle'); // idle | loading | success | error
@@ -15,7 +15,7 @@ export default function CancelarPage() {
         setMensaje('');
 
         try {
-            await api.post(`/citas/${id}/cancelar/`, { correo });
+            await api.post(`/${slug || 'jimbar'}/citas/${id}/cancelar/`, { correo });
             setEstado('success');
             setMensaje('Tu cita ha sido cancelada exitosamente.');
         } catch (err) {
@@ -41,7 +41,7 @@ export default function CancelarPage() {
             <div style={{ width: '100%', maxWidth: '400px' }}>
                 <button
                     className="btn btn--ghost"
-                    onClick={() => navigate('/')}
+                    onClick={() => navigate(`/${slug || ''}`)}
                     style={{ marginBottom: '24px', paddingLeft: 0 }}
                 >
                     ← Volver
@@ -55,7 +55,7 @@ export default function CancelarPage() {
                             <div className="alert alert--success" style={{ marginBottom: '24px' }}>
                                 {mensaje}
                             </div>
-                            <button className="btn btn--primary" onClick={() => navigate('/')}>
+                            <button className="btn btn--primary" onClick={() => navigate(`/${slug || ''}`)}>
                                 Volver al inicio
                             </button>
                         </div>

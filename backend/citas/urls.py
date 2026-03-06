@@ -15,6 +15,9 @@ urlpatterns = [
 
 
     # ── Públicas ──────────────────────────────────────────────
+    # Info de la barberia
+    path('info/', views.BarberiaInfoView.as_view(), name='barberia-info'),
+
     # Lista de servicios disponibles
     path('servicios/', views.ServicioListView.as_view(), name='servicio-list'),
 

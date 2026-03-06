@@ -11,7 +11,7 @@ import { getDisponibilidad } from '../../services/citasService';
 
 dayjs.locale('es');
 
-export default function PasoFechaHora({ servicio, onSiguiente, onAnterior }) {
+export default function PasoFechaHora({ slug, servicio, onSiguiente, onAnterior }) {
     const [fecha, setFecha] = useState('');
     const [slots, setSlots] = useState([]);
     const [slotSeleccionado, setSlotSeleccionado] = useState(null);
@@ -34,7 +34,7 @@ export default function PasoFechaHora({ servicio, onSiguiente, onAnterior }) {
 
         setLoading(true);
         try {
-            const data = await getDisponibilidad(nuevaFecha, servicio.id);
+            const data = await getDisponibilidad(slug || 'jimbar', nuevaFecha, servicio.id);
 
             if (!data.disponible) {
                 setMensajeDia(data.motivo || 'No hay disponibilidad para ese día.');

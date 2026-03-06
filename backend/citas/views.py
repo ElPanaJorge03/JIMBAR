@@ -161,6 +161,26 @@ class RestaurarPasswordView(APIView):
 # VISTAS PÚBLICAS (sin autenticación)
 # ============================================================
 
+class BarberiaInfoView(TenantMixin, APIView):
+    """
+    GET /api/<slug>/info/
+    Devuelve la información pública de la barbería para su Portal Público.
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        barberia = self.get_barberia()
+        return Response({
+            'nombre': barberia.nombre,
+            'slug': barberia.slug,
+            'descripcion': barberia.descripcion,
+            'logo': barberia.logo,
+            'imagen_portada': barberia.imagen_portada,
+            'telefono': barberia.telefono,
+            'direccion': barberia.direccion,
+        })
+
+
 
 class ServicioListView(TenantMixin, generics.ListAPIView):
     """

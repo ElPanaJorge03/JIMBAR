@@ -4,18 +4,18 @@
 import { useState, useEffect } from 'react';
 import { getServicios } from '../../services/citasService';
 
-export default function PasoServicio({ onSiguiente }) {
+export default function PasoServicio({ slug, onSiguiente }) {
     const [servicios, setServicios] = useState([]);
     const [seleccionado, setSeleccionado] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
     useEffect(() => {
-        getServicios()
+        getServicios(slug || 'jimbar') // Fallback para dev local sin tenant
             .then(setServicios)
             .catch(() => setError('No se pudieron cargar los servicios. Intenta de nuevo.'))
             .finally(() => setLoading(false));
-    }, []);
+    }, [slug]);
 
     if (loading) return (
         <div className="loading-center">

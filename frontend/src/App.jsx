@@ -12,6 +12,8 @@ import DashboardCliente from './pages/cliente/DashboardCliente';
 import RecuperarPasswordPage from './pages/auth/RecuperarPasswordPage';
 import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 
+import TenantLandingPage from './pages/tenant/TenantLandingPage';
+
 // Páginas del barbero
 import LoginPage from './pages/barbero/LoginPage';
 import CitasPage from './pages/barbero/CitasPage';
@@ -22,14 +24,15 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           {/* ── Público ─────────────────────────────── */}
-          {/* Página de inicio con info del negocio */}
+          {/* Página de inicio del SaaS (Jimbar Software) */}
           <Route path="/" element={<LandingPage />} />
 
-          {/* Flujo de agendamiento (con o sin cuenta) */}
-          <Route path="/agendar" element={<AgendarPage />} />
-          <Route path="/cancelar/:id" element={<CancelarPage />} />
+          {/* ── Barberías (Tenant Público) ──────────────────── */}
+          <Route path="/:slug" element={<TenantLandingPage />} />
+          <Route path="/:slug/agendar" element={<AgendarPage />} />
+          <Route path="/:slug/cancelar/:id" element={<CancelarPage />} />
 
-          {/* Cuenta de cliente */}
+          {/* ── Cuentas y Auth Centrales ────────────────────── */}
           <Route path="/login" element={<ClienteLoginPage />} />
           <Route path="/registro" element={<RegistroPage />} />
 
