@@ -61,22 +61,41 @@ export function usePushNotifications() {
             if (resultado !== 'granted') return;
 
             // 2. Obtener SW listo
-            const reg = await navigator.serviceWorker.ready;
+            let reg;
+            try {
+                reg = await navigator.serviceWorker.ready;
+            } catch (swErr) {
+                setError(`Service Worker no disponible: ${swErr.message}`);
+                return;
+            }
 
             // 3. Suscribirse al push
-            const subscription = await reg.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-            });
+            let subscription;
+            try {
+                subscription = await reg.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+                });
+            } catch (subErr) {
+                setError(`Error al suscribirse al push: ${subErr.message}`);
+                return;
+            }
 
             // 4. Enviar la suscripción al backend
-            await api.post('/push/suscribir/', subscription.toJSON());
+            try {
+                await api.post('/push/suscribir/', subscription.toJSON());
+            } catch (apiErr) {
+                const msg = apiErr.response?.data?.error || apiErr.message || 'Error de red';
+                setError(`Error guardando suscripción: ${msg}`);
+                return;
+            }
+
             setSuscrito(true);
             setExito(true);
             setTimeout(() => setExito(false), 3000);
         } catch (err) {
-            console.error('Error suscribiendo a push:', err);
-            setError('No se pudo activar las notificaciones. Inténtalo de nuevo.');
+            console.error('Error inesperado en push:', err);
+            setError(`Error inesperado: ${err.message}`);
         } finally {
             setCargando(false);
         }
