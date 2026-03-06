@@ -13,7 +13,6 @@ import RecuperarPasswordPage from './pages/auth/RecuperarPasswordPage';
 import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 
 import TenantLandingPage from './pages/tenant/TenantLandingPage';
-import RegistroBarberiaPage from './pages/barberia/RegistroBarberiaPage';
 
 // Páginas del barbero
 import LoginPage from './pages/barbero/LoginPage';
@@ -28,33 +27,17 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* ── Público ─────────────────────────────── */}
-          {/* Página de inicio del SaaS (Jimbar Software) */}
+          {/* ── Inicio del SaaS ──────────────────────────── */}
           <Route path="/" element={<LandingPage />} />
 
-          {/* ── Barberías (Tenant Público) ──────────────────── */}
-          <Route path="/:slug" element={<TenantLandingPage />} />
-          <Route path="/:slug/agendar" element={<AgendarPage />} />
-          <Route path="/:slug/cancelar/:id" element={<CancelarPage />} />
-
-          {/* ── Cuentas y Auth Centrales ────────────────────── */}
+          {/* ── Cuentas y Auth Centrales (ESTÁTICAS PRIMERO) ── */}
           <Route path="/login" element={<ClienteLoginPage />} />
           <Route path="/registro" element={<RegistroPage />} />
           <Route path="/registro-barberia" element={<RegistroBarberiaPage />} />
-
           <Route path="/recuperar-password" element={<RecuperarPasswordPage />} />
           <Route path="/restaurar-password/:uid/:token" element={<ResetPasswordPage />} />
 
-          <Route
-            path="/cliente/citas"
-            element={
-              <ProtectedRoute allowedRoles={['CLIENTE', 'cliente']}>
-                <DashboardCliente />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* ── Barbero ─────────────────────────────── */}
+          {/* ── Barbero ──────────────────────────────────── */}
           <Route path="/barbero/login" element={<LoginPage />} />
           <Route
             path="/barbero/citas"
@@ -72,6 +55,21 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* ── Dashboard Cliente ────────────────────────── */}
+          <Route
+            path="/cliente/citas"
+            element={
+              <ProtectedRoute allowedRoles={['CLIENTE', 'cliente']}>
+                <DashboardCliente />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ── Barberías (Tenant Público) ── DEBEN IR AL FINAL (ruta dinámica) */}
+          <Route path="/:slug" element={<TenantLandingPage />} />
+          <Route path="/:slug/agendar" element={<AgendarPage />} />
+          <Route path="/:slug/cancelar/:id" element={<CancelarPage />} />
 
           {/* Ruta desconocida → inicio */}
           <Route path="*" element={<Navigate to="/" replace />} />

@@ -299,19 +299,21 @@ class CitaCreateView(TenantMixin, generics.CreateAPIView):
         _en_background(enviar_correo_nueva_cita, cita.id, origen_url)
 
 
-class CitaClienteListView(TenantMixin, generics.ListAPIView):
+class CitaClienteListView(generics.ListAPIView):
     """
     GET /api/cliente/citas/
-    El cliente ve su propio historial de citas filtrando por su email.
+    El cliente ve su propio historial de citas en todas las barberias.
+    No necesita TenantMixin: el cliente puede tener citas en distintas barberias.
     """
     permission_classes = [IsAuthenticated]
     serializer_class = CitaSerializer
 
     def get_queryset(self):
         user = self.request.user
-        return Cita.objects.for_tenant(self.get_barberia()).filter(
+        # Buscar en todas las barberias por usuario o correo
+        return Cita.objects.filter(
             Q(usuario=user) | Q(cliente_correo=user.email) | Q(cliente_correo=user.username)
-        ).order_by('-fecha', '-hora_inicio')
+        ).select_related('servicio').order_by('-fecha', '-hora_inicio')
 
 
 class CitaCancelarView(TenantMixin, APIView):

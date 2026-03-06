@@ -13,12 +13,21 @@ export default function TenantLandingPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
 
+    // Bug Fix #4: Si ya hay sesión, redirigir ANTES de hacer fetch
+    // evita peticiones inútiles y loops de carga.
+    if (authenticated) {
+        if (['BARBERIA_ADMIN', 'SUPERADMIN', 'BARBERO', 'barbero'].includes(role)) {
+            return <Navigate to="/barbero/citas" replace />;
+        } else {
+            return <Navigate to="/cliente/citas" replace />;
+        }
+    }
+
     useEffect(() => {
         getBarberiaInfo(slug)
             .then(data => {
                 setBarberia(data);
                 setLoading(false);
-                // Actualizar title
                 document.title = `${data.nombre} | Barbería a domicilio`;
             })
             .catch(() => {
@@ -36,16 +45,7 @@ export default function TenantLandingPage() {
     }
 
     if (error || !barberia) {
-        return <Navigate to="/" replace />; // Regresa al SaaS
-    }
-
-    // Si ya hay sesión activa, redirigir al dashboard respectivo
-    if (authenticated) {
-        if (['BARBERIA_ADMIN', 'SUPERADMIN', 'BARBERO', 'barbero'].includes(role)) {
-            return <Navigate to="/barbero/citas" replace />;
-        } else {
-            return <Navigate to="/cliente/citas" replace />;
-        }
+        return <Navigate to="/" replace />;
     }
 
     return (

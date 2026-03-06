@@ -37,10 +37,19 @@ class BarberiaPerfilView(generics.RetrieveUpdateAPIView):
     http_method_names = ['get', 'patch', 'head', 'options']
 
     def get_object(self):
+        from rest_framework.exceptions import PermissionDenied
         user = self.request.user
+
+        # Solo roles admin pueden ver/editar el perfil del tenant
+        roles_permitidos = ['SUPERADMIN', 'BARBERIA_ADMIN']
+        if hasattr(user, 'perfil') and user.perfil.role not in roles_permitidos:
+            raise PermissionDenied('No tienes permiso para gestionar una barbería.')
+        elif not hasattr(user, 'perfil') and not user.is_staff and not user.is_superuser:
+            raise PermissionDenied('No tienes permiso para gestionar una barbería.')
+
         # Obtener la barbería del perfil del usuario
         if hasattr(user, 'perfil') and user.perfil.barberia:
             return user.perfil.barberia
-        # Fallback para superadmin sin perfil
+        # Fallback solo para superadmin Django sin perfil
         from .models import Barberia
         return Barberia.objects.first()

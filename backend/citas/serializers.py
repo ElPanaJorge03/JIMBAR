@@ -214,6 +214,14 @@ class RegistroClienteSerializer(serializers.ModelSerializer):
             first_name=validated_data.get('first_name', ''),
             password=validated_data['password'],
         )
+        # Bug Fix #5: Crear PerfilUsuario con rol CLIENTE
+        # Sin esto el JWT fallback los detecta mal
+        from barberias.models import PerfilUsuario
+        PerfilUsuario.objects.create(
+            user=user,
+            role=PerfilUsuario.Rol.CLIENTE,
+            barberia=None  # Los clientes no pertenecen a un tenant
+        )
         return user
 
 
