@@ -234,23 +234,27 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         barberia_slug = None
         barberia_nombre = None
         
-        if hasattr(user, 'perfil'):
+        if user.is_superuser:
+            # Los superusers de Django SIEMPRE son SUPERADMIN del SaaS,
+            # independientemente de si tienen PerfilUsuario o no.
+            role = 'SUPERADMIN'
+            if hasattr(user, 'perfil') and user.perfil.barberia:
+                barberia_slug = user.perfil.barberia.slug
+                barberia_nombre = user.perfil.barberia.nombre
+        elif hasattr(user, 'perfil'):
             role = user.perfil.role
             if user.perfil.barberia:
                 barberia_slug = user.perfil.barberia.slug
                 barberia_nombre = user.perfil.barberia.nombre
-        else:
-            # Compatibilidad si un user (admin o staff) no tiene PerfilUsuario
-            if user.is_superuser:
-                role = 'SUPERADMIN'
-            elif user.is_staff:
-                role = 'BARBERIA_ADMIN'
-                # Por retrocompatibilidad asumiremos la primera
-                from barberias.models import Barberia
-                b = Barberia.objects.first()
-                if b:
-                    barberia_slug = b.slug
-                    barberia_nombre = b.nombre
+        elif user.is_staff:
+            # Staff sin PerfilUsuario → retrocompatibilidad
+            role = 'BARBERIA_ADMIN'
+            from barberias.models import Barberia
+            b = Barberia.objects.first()
+            if b:
+                barberia_slug = b.slug
+                barberia_nombre = b.nombre
+
         
         # Añadir payload expuesto
         data['role'] = role
