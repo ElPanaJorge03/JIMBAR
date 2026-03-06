@@ -6,7 +6,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
 
-const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY || '';
+// Clave pública VAPID — generada con py_vapid, formato P-256 uncompressed en base64url
+const VAPID_PUBLIC_KEY = 'BCly-zlrphlKiXglBlkPBty0rNHdM65vdKhDkBTSXphQ9pumKNoqK_2daBp8j1NwsLPZmVa8AjuZrnZV0Vp1xuA';
 
 function urlBase64ToUint8Array(base64String) {
     const padding = '='.repeat((4 - (base64String.length % 4)) % 4);

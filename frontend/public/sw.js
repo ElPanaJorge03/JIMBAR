@@ -16,6 +16,9 @@ self.addEventListener('activate', (event) => {
     event.waitUntil(self.clients.claim());
 });
 
+// Requerido por algunos navegadores para la suscripción push
+self.addEventListener('fetch', () => { });
+
 // ── Push: recibir notificación ──────────────────────────────
 self.addEventListener('push', (event) => {
     let data = { title: 'Jimbar', body: 'Tienes una nueva notificación', icon: '/favicon.svg' };
