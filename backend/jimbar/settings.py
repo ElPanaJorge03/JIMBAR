@@ -46,6 +46,7 @@ INSTALLED_APPS = [
 
     # Apps del proyecto
     'citas',
+    'barberias',
 ]
 
 MIDDLEWARE = [
