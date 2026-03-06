@@ -37,14 +37,27 @@ def _en_background(fn, *args):
 
 class TenantMixin:
     """
-    Resuelve el tenant (Barberia) a partir de la URL (kwarg 'slug').
-    Si no viene, usa la primera para retrocompatibilidad en Fase 1.
-    Aplica el filtro `.for_tenant()` a todos los querysets.
+    Resuelve el tenant (Barberia) de estas formas, en orden:
+    1. Si hay 'slug' en la URL → usa ese.
+    2. Si el usuario está autenticado y tiene PerfilUsuario.barberia → usa esa.
+    3. Fallback: primera barbería (compatibilidad fase 1).
     """
     def get_barberia(self):
         slug = self.kwargs.get('slug')
         if slug:
             return get_object_or_404(Barberia, slug=slug)
+
+        # Intentar resolver desde el usuario autenticado
+        user = getattr(self, 'request', None) and self.request.user
+        if user and user.is_authenticated and not user.is_anonymous:
+            from barberias.models import PerfilUsuario
+            try:
+                perfil = user.perfil
+                if perfil.barberia:
+                    return perfil.barberia
+            except Exception:
+                pass
+
         return Barberia.objects.first()
 
     def get_queryset(self):
@@ -170,12 +183,22 @@ class BarberiaInfoView(TenantMixin, APIView):
 
     def get(self, request, *args, **kwargs):
         barberia = self.get_barberia()
+
+        def _url(field):
+            if not field:
+                return None
+            try:
+                url = str(field.url) if hasattr(field, 'url') else str(field)
+                return url.replace('http://', 'https://', 1) if url.startswith('http://') else url
+            except Exception:
+                return None
+
         return Response({
             'nombre': barberia.nombre,
             'slug': barberia.slug,
             'descripcion': barberia.descripcion,
-            'logo': barberia.logo,
-            'imagen_portada': barberia.imagen_portada,
+            'logo': _url(barberia.logo),
+            'imagen_portada': _url(barberia.imagen_portada),
             'telefono': barberia.telefono,
             'direccion': barberia.direccion,
         })

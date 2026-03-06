@@ -7,14 +7,16 @@
  * Uso:
  *   <Route path="/barbero/citas" element={<ProtectedRoute><CitasPage /></ProtectedRoute>} />
  */
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function ProtectedRoute({ children, allowedRoles = [] }) {
     const { authenticated, role } = useAuth();
+    const location = useLocation();
 
     if (!authenticated) {
-        return <Navigate to="/login" replace />;
+        // Guarda la URL actual para poder volver después del login
+        return <Navigate to={`/login?next=${encodeURIComponent(location.pathname)}`} replace />;
     }
 
     if (allowedRoles.length > 0 && !allowedRoles.includes(role)) {

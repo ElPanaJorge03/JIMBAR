@@ -31,8 +31,8 @@ export default function MiBarberiaPage() {
                 setForm({
                     nombre: data.nombre || '',
                     descripcion: data.descripcion || '',
-                    logo: data.logo || '',
-                    imagen_portada: data.imagen_portada || '',
+                    logo: null,  // Archivo nuevo (File), empieza vacío
+                    imagen_portada: null,
                     telefono: data.telefono || '',
                     email: data.email || '',
                     direccion: data.direccion || '',
@@ -61,11 +61,11 @@ export default function MiBarberiaPage() {
         const formData = new FormData();
         Object.keys(form).forEach(key => {
             if (form[key]) {
-                // Solo enviar si es un File nuevo, o texto
+                // Solo enviar si es un File nuevo
                 if (form[key] instanceof File) {
                     formData.append(key, form[key]);
-                } else if (typeof form[key] === 'string') {
-                    // Si ya era un enlace de Cloudinary o texto normal
+                } else if (typeof form[key] === 'string' && !['logo', 'imagen_portada'].includes(key)) {
+                    // texto normal (no URLs de imagen ya guardadas)
                     formData.append(key, form[key]);
                 }
             }
@@ -225,9 +225,9 @@ export default function MiBarberiaPage() {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                             <div className="form-group">
                                 <label className="form-label">Logo de la Barbería</label>
-                                {barberia?.logo && typeof barberia.logo === 'string' && (
+                                {barberia?.logo_url && (
                                     <div style={{ marginBottom: 10 }}>
-                                        <img src={barberia.logo} alt="Logo" style={{ width: 100, borderRadius: 8, border: '1px solid #333' }} />
+                                        <img src={barberia.logo_url} alt="Logo" style={{ width: 100, borderRadius: 8, border: '1px solid #333', objectFit: 'cover' }} />
                                     </div>
                                 )}
                                 <input
@@ -240,9 +240,9 @@ export default function MiBarberiaPage() {
                             </div>
                             <div className="form-group">
                                 <label className="form-label">Imagen de Portada</label>
-                                {barberia?.imagen_portada && typeof barberia.imagen_portada === 'string' && (
+                                {barberia?.imagen_portada_url && (
                                     <div style={{ marginBottom: 10 }}>
-                                        <img src={barberia.imagen_portada} alt="Portada" style={{ width: 200, borderRadius: 8, border: '1px solid #333' }} />
+                                        <img src={barberia.imagen_portada_url} alt="Portada" style={{ width: '100%', maxWidth: 280, borderRadius: 8, border: '1px solid #333', objectFit: 'cover' }} />
                                     </div>
                                 )}
                                 <input

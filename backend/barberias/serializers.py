@@ -89,16 +89,39 @@ class BarberiaSerializer(serializers.ModelSerializer):
     """
     suscripcion_estado = serializers.SerializerMethodField()
     suscripcion_trial_hasta = serializers.SerializerMethodField()
+    logo_url = serializers.SerializerMethodField()
+    imagen_portada_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Barberia
         fields = [
             'id', 'nombre', 'slug', 'descripcion',
-            'logo', 'imagen_portada', 'telefono', 'email', 'direccion',
+            'logo', 'logo_url', 'imagen_portada', 'imagen_portada_url',
+            'telefono', 'email', 'direccion',
             'activo', 'creada_en',
             'suscripcion_estado', 'suscripcion_trial_hasta',
         ]
-        read_only_fields = ['id', 'slug', 'activo', 'creada_en', 'suscripcion_estado', 'suscripcion_trial_hasta']
+        read_only_fields = ['id', 'slug', 'activo', 'creada_en', 'suscripcion_estado', 'suscripcion_trial_hasta', 'logo_url', 'imagen_portada_url']
+
+    def _cloudinary_url(self, field_value):
+        """Convierte un CloudinaryResource o string a URL https completa."""
+        if not field_value:
+            return None
+        try:
+            # CloudinaryField almacena el public_id; build_url() da la URL completa
+            url = str(field_value.url) if hasattr(field_value, 'url') else str(field_value)
+            # Asegurar https
+            if url.startswith('http://'):
+                url = url.replace('http://', 'https://', 1)
+            return url
+        except Exception:
+            return None
+
+    def get_logo_url(self, obj):
+        return self._cloudinary_url(obj.logo)
+
+    def get_imagen_portada_url(self, obj):
+        return self._cloudinary_url(obj.imagen_portada)
 
     def get_suscripcion_estado(self, obj):
         try:

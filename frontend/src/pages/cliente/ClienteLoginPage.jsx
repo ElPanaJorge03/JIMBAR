@@ -4,12 +4,15 @@
  * El cliente usa su correo como usuario.
  */
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 export default function ClienteLoginPage() {
     const navigate = useNavigate();
     const { login } = useAuth();
+    const [searchParams] = useSearchParams();
+    const nextUrl = searchParams.get('next') || null;
+
     const [form, setForm] = useState({ email: '', password: '' });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -22,8 +25,10 @@ export default function ClienteLoginPage() {
             const data = await login(form.email.toLowerCase(), form.password);
 
             if (['BARBERIA_ADMIN', 'SUPERADMIN', 'BARBERO', 'barbero'].includes(data.role)) {
-                // Si alguien del sistema (admin/barbero) usa este logín por error
                 navigate('/barbero/citas', { replace: true });
+            } else if (nextUrl) {
+                // Si vino de una ruta protegida, volver allá
+                navigate(nextUrl, { replace: true });
             } else {
                 navigate('/cliente/citas', { replace: true });
             }
@@ -48,7 +53,7 @@ export default function ClienteLoginPage() {
                 {/* Volver */}
                 <button
                     className="btn btn--ghost"
-                    onClick={() => navigate('/')}
+                    onClick={() => navigate(nextUrl || -1)}
                     style={{ marginBottom: '24px', paddingLeft: 0 }}
                 >
                     ← Volver
