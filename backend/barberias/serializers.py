@@ -80,3 +80,35 @@ class RegistroBarberiaSerializer(serializers.Serializer):
                 'barberia_nombre': barberia.nombre,
                 'admin_email': user.email
             }
+
+
+class BarberiaSerializer(serializers.ModelSerializer):
+    """
+    Serializer para que el BARBERIA_ADMIN vea y edite
+    el perfil público de su propia barbería.
+    """
+    suscripcion_estado = serializers.SerializerMethodField()
+    suscripcion_trial_hasta = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Barberia
+        fields = [
+            'id', 'nombre', 'slug', 'descripcion',
+            'logo', 'imagen_portada', 'telefono', 'email', 'direccion',
+            'activo', 'creada_en',
+            'suscripcion_estado', 'suscripcion_trial_hasta',
+        ]
+        read_only_fields = ['id', 'slug', 'activo', 'creada_en', 'suscripcion_estado', 'suscripcion_trial_hasta']
+
+    def get_suscripcion_estado(self, obj):
+        try:
+            return obj.suscripcion.estado
+        except Exception:
+            return None
+
+    def get_suscripcion_trial_hasta(self, obj):
+        try:
+            t = obj.suscripcion.trial_hasta
+            return t.strftime('%d de %B de %Y') if t else None
+        except Exception:
+            return None

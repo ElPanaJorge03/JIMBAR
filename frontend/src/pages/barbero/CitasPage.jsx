@@ -10,7 +10,7 @@ import {
     ClipboardList, CalendarOff,
     CheckCircle, XCircle, CheckSquare,
     Phone, MapPin, FileText, Scissors,
-    LogOut,
+    LogOut, Settings,
 } from 'lucide-react';
 import { getCitas, cambiarEstadoCita } from '../../services/citasService';
 import { useAuth } from '../../context/AuthContext';
@@ -28,9 +28,11 @@ const ESTADOS = [
 ];
 
 export default function CitasPage() {
-    const { logout } = useAuth();
+    const { logout, role } = useAuth();
     const navigate = useNavigate();
     const [pesta, setPesta] = useState('citas'); // 'citas' | 'bloqueos'
+
+    const esAdmin = ['BARBERIA_ADMIN', 'SUPERADMIN'].includes(role);
 
     const handleLogout = () => {
         logout();
@@ -57,13 +59,25 @@ export default function CitasPage() {
                     <span style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--accent)' }}>
                         JIMBAR
                     </span>
-                    <button
-                        className="btn btn--ghost btn--sm"
-                        onClick={handleLogout}
-                        style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-                    >
-                        <LogOut size={15} /> Salir
-                    </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {esAdmin && (
+                            <button
+                                className="btn btn--ghost btn--sm"
+                                onClick={() => navigate('/mi-barberia')}
+                                style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                                title="Configurar mi barbería"
+                            >
+                                <Settings size={15} /> Mi Barbería
+                            </button>
+                        )}
+                        <button
+                            className="btn btn--ghost btn--sm"
+                            onClick={handleLogout}
+                            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                        >
+                            <LogOut size={15} /> Salir
+                        </button>
+                    </div>
                 </div>
             </header>
 

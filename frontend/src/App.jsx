@@ -13,10 +13,15 @@ import RecuperarPasswordPage from './pages/auth/RecuperarPasswordPage';
 import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 
 import TenantLandingPage from './pages/tenant/TenantLandingPage';
+import RegistroBarberiaPage from './pages/barberia/RegistroBarberiaPage';
 
 // Páginas del barbero
 import LoginPage from './pages/barbero/LoginPage';
 import CitasPage from './pages/barbero/CitasPage';
+
+// Páginas de gestión de la barbería
+import RegistroBarberiaPage from './pages/barberia/RegistroBarberiaPage';
+import MiBarberiaPage from './pages/barberia/MiBarberiaPage';
 
 export default function App() {
   return (
@@ -35,6 +40,7 @@ export default function App() {
           {/* ── Cuentas y Auth Centrales ────────────────────── */}
           <Route path="/login" element={<ClienteLoginPage />} />
           <Route path="/registro" element={<RegistroPage />} />
+          <Route path="/registro-barberia" element={<RegistroBarberiaPage />} />
 
           <Route path="/recuperar-password" element={<RecuperarPasswordPage />} />
           <Route path="/restaurar-password/:uid/:token" element={<ResetPasswordPage />} />
@@ -55,6 +61,14 @@ export default function App() {
             element={
               <ProtectedRoute allowedRoles={['SUPERADMIN', 'BARBERIA_ADMIN', 'BARBERO', 'barbero']}>
                 <CitasPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/mi-barberia"
+            element={
+              <ProtectedRoute allowedRoles={['SUPERADMIN', 'BARBERIA_ADMIN']}>
+                <MiBarberiaPage />
               </ProtectedRoute>
             }
           />
