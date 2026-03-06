@@ -9,8 +9,9 @@ class Barberia(models.Model):
     nombre = models.CharField(max_length=150)
     slug = models.SlugField(max_length=150, unique=True, help_text="URL de la barbería: jimbar.vercel.app/slug")
     descripcion = models.TextField(blank=True)
-    logo = models.URLField(blank=True, help_text="URL del logo")
-    imagen_portada = models.URLField(blank=True, help_text="URL de imagen destacada")
+    from cloudinary.models import CloudinaryField
+    logo = CloudinaryField('logo', blank=True, null=True, help_text="Sube un archivo como logo")
+    imagen_portada = CloudinaryField('imagen_portada', blank=True, null=True, help_text="Sube un archivo como portada")
     telefono = models.CharField(max_length=20, blank=True)
     email = models.EmailField(blank=True)
     direccion = models.CharField(max_length=255, blank=True)

@@ -9,9 +9,10 @@ import { Link } from 'react-router-dom';
 dayjs.locale('es');
 
 export default function PasoConfirmacion({ seleccion, onNuevaCita }) {
-    const { servicio, fecha, slot, datos, citaCreada } = seleccion;
+    const { servicios, fecha, slot, datos, citaCreada } = seleccion;
 
     const fechaFormateada = dayjs(fecha).format('dddd D [de] MMMM [de] YYYY');
+    const totalCalc = servicios.reduce((acc, curr) => acc + curr.precio, 0);
 
     return (
         <div style={{ textAlign: 'center' }}>
@@ -47,8 +48,8 @@ export default function PasoConfirmacion({ seleccion, onNuevaCita }) {
                 </h3>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <FilaResumen label="Servicio" value={servicio.nombre} />
-                    <FilaResumen label="Precio" value={servicio.precio_formateado} />
+                    <FilaResumen label="Servicios" value={servicios.map(s => s.nombre).join(', ')} />
+                    <FilaResumen label="Total" value={`$${totalCalc.toLocaleString()}`} />
                     <hr className="divider" style={{ margin: '4px 0' }} />
                     <FilaResumen label="Fecha" value={fechaFormateada} capitalize />
                     <FilaResumen label="Hora" value={`${slot.hora_inicio} – ${slot.hora_fin}`} />

@@ -43,4 +43,8 @@ urlpatterns = [
     # Gestionar días bloqueados
     path('barbero/bloqueos/', views.BloqueoDiaListCreateView.as_view(), name='barbero-bloqueo-list'),
     path('barbero/bloqueos/<int:pk>/', views.BloqueoDiaDeleteView.as_view(), name='barbero-bloqueo-delete'),
+
+    # Gestionar servicios
+    path('barbero/servicios/', views.ServicioListCreateView.as_view(), name='barbero-servicio-list'),
+    path('barbero/servicios/<int:pk>/', views.ServicioDetailView.as_view(), name='barbero-servicio-detail'),
 ]

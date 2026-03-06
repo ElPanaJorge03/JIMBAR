@@ -203,11 +203,11 @@ class DisponibilidadView(TenantMixin, APIView):
 
     def get(self, request):
         fecha_str = request.query_params.get('fecha')
-        servicio_id = request.query_params.get('servicio_id')
+        servicios_ids_str = request.query_params.get('servicios_ids')
 
-        if not fecha_str or not servicio_id:
+        if not fecha_str or not servicios_ids_str:
             return Response(
-                {'error': 'Debes enviar los parámetros: fecha (YYYY-MM-DD) y servicio_id'},
+                {'error': 'Debes enviar los parámetros: fecha (YYYY-MM-DD) y servicios_ids (comma-separated)'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -220,9 +220,13 @@ class DisponibilidadView(TenantMixin, APIView):
             )
 
         try:
-            servicio = Servicio.objects.for_tenant(self.get_barberia()).get(id=servicio_id, activo=True)
-        except Servicio.DoesNotExist:
-            return Response({'error': 'Servicio no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+            servicios_ids = [int(sid) for sid in servicios_ids_str.split(',')]
+            servicios = Servicio.objects.for_tenant(self.get_barberia()).filter(id__in=servicios_ids, activo=True)
+            if not servicios.exists() or len(servicios) != len(servicios_ids):
+                return Response({'error': 'Alguno de los servicios no existe o no está activo'}, status=status.HTTP_404_NOT_FOUND)
+            duracion_total_minutos = sum(s.duracion_minutos for s in servicios)
+        except ValueError:
+            return Response({'error': 'Formato de servicios_ids inválido'}, status=status.HTTP_400_BAD_REQUEST)
 
         if BloqueoDia.objects.for_tenant(self.get_barberia()).filter(fecha=fecha).exists():
             return Response({'disponible': False, 'slots': [], 'motivo': 'Día bloqueado'})
@@ -245,7 +249,7 @@ class DisponibilidadView(TenantMixin, APIView):
         slots_disponibles = []
         cursor = datetime.combine(fecha, hora_apertura)
         limite = datetime.combine(fecha, ultima_hora_inicio)
-        duracion = timedelta(minutes=servicio.duracion_minutos)
+        duracion = timedelta(minutes=duracion_total_minutos)
 
         while cursor <= limite:
             slot_inicio = cursor.time()
@@ -381,7 +385,7 @@ class CitaListView(TenantMixin, generics.ListAPIView):
     serializer_class = CitaSerializer
 
     def get_queryset(self):
-        queryset = Cita.objects.for_tenant(self.get_barberia()).select_related('servicio').all()
+        queryset = Cita.objects.for_tenant(self.get_barberia()).prefetch_related('servicios').all()
         estado = self.request.query_params.get('estado')
         if estado:
             queryset = queryset.filter(estado=estado)
@@ -397,7 +401,7 @@ class CitaDetailView(TenantMixin, generics.RetrieveAPIView):
     serializer_class = CitaSerializer
     
     def get_queryset(self):
-        return Cita.objects.for_tenant(self.get_barberia()).select_related('servicio').all()
+        return Cita.objects.for_tenant(self.get_barberia()).prefetch_related('servicios').all()
 
 
 class CitaEstadoView(TenantMixin, APIView):
@@ -445,3 +449,24 @@ class BloqueoDiaDeleteView(TenantMixin, generics.DestroyAPIView):
     
     def get_queryset(self):
         return BloqueoDia.objects.for_tenant(self.get_barberia()).all()
+
+
+class ServicioListCreateView(TenantMixin, generics.ListCreateAPIView):
+    """GET + POST /api/<slug>/barbero/servicios/"""
+    permission_classes = [IsAuthenticated]
+    serializer_class = ServicioSerializer
+
+    def get_queryset(self):
+        return Servicio.objects.for_tenant(self.get_barberia()).all().order_by('nombre')
+
+    def perform_create(self, serializer):
+        serializer.save(barberia=self.get_barberia())
+
+
+class ServicioDetailView(TenantMixin, generics.RetrieveUpdateDestroyAPIView):
+    """GET + PATCH + DELETE /api/<slug>/barbero/servicios/<pk>/"""
+    permission_classes = [IsAuthenticated]
+    serializer_class = ServicioSerializer
+
+    def get_queryset(self):
+        return Servicio.objects.for_tenant(self.get_barberia()).all()

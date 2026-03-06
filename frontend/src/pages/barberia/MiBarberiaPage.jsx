@@ -43,8 +43,12 @@ export default function MiBarberiaPage() {
     }, []);
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setForm(prev => ({ ...prev, [name]: value }));
+        const { name, value, files } = e.target;
+        if (files) {
+            setForm(prev => ({ ...prev, [name]: files[0] }));
+        } else {
+            setForm(prev => ({ ...prev, [name]: value }));
+        }
         if (success) setSuccess('');
     };
 
@@ -53,8 +57,24 @@ export default function MiBarberiaPage() {
         setSaving(true);
         setError('');
         setSuccess('');
+
+        const formData = new FormData();
+        Object.keys(form).forEach(key => {
+            if (form[key]) {
+                // Solo enviar si es un File nuevo, o texto
+                if (form[key] instanceof File) {
+                    formData.append(key, form[key]);
+                } else if (typeof form[key] === 'string') {
+                    // Si ya era un enlace de Cloudinary o texto normal
+                    formData.append(key, form[key]);
+                }
+            }
+        });
+
         try {
-            const { data } = await api.patch('/mi-barberia/', form);
+            const { data } = await api.patch('/mi-barberia/', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
             setBarberia(data);
             setSuccess('¡Cambios guardados exitosamente!');
         } catch (err) {
@@ -200,29 +220,37 @@ export default function MiBarberiaPage() {
                     {/* Bloque: Imágenes */}
                     <div style={{ padding: '24px', background: '#111', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '14px' }}>
                         <div style={{ fontSize: '0.8rem', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '1.5px', marginBottom: '20px', fontWeight: 600 }}>
-                            Imágenes
+                            Imágenes (Automático en Cloudinary)
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                             <div className="form-group">
-                                <label className="form-label">URL del Logo</label>
+                                <label className="form-label">Logo de la Barbería</label>
+                                {barberia?.logo && typeof barberia.logo === 'string' && (
+                                    <div style={{ marginBottom: 10 }}>
+                                        <img src={barberia.logo} alt="Logo" style={{ width: 100, borderRadius: 8, border: '1px solid #333' }} />
+                                    </div>
+                                )}
                                 <input
                                     className="form-input"
-                                    type="url"
+                                    type="file"
+                                    accept="image/*"
                                     name="logo"
-                                    value={form.logo}
                                     onChange={handleChange}
-                                    placeholder="https://tuenlace.com/logo.png"
                                 />
                             </div>
                             <div className="form-group">
-                                <label className="form-label">URL de Imagen de Portada</label>
+                                <label className="form-label">Imagen de Portada</label>
+                                {barberia?.imagen_portada && typeof barberia.imagen_portada === 'string' && (
+                                    <div style={{ marginBottom: 10 }}>
+                                        <img src={barberia.imagen_portada} alt="Portada" style={{ width: 200, borderRadius: 8, border: '1px solid #333' }} />
+                                    </div>
+                                )}
                                 <input
                                     className="form-input"
-                                    type="url"
+                                    type="file"
+                                    accept="image/*"
                                     name="imagen_portada"
-                                    value={form.imagen_portada}
                                     onChange={handleChange}
-                                    placeholder="https://tuenlace.com/portada.jpg"
                                 />
                             </div>
                         </div>

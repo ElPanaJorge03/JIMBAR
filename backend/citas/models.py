@@ -15,6 +15,7 @@ class Servicio(models.Model):
     nombre = models.CharField(max_length=100)
     precio = models.IntegerField(help_text="Precio en pesos colombianos")
     duracion_minutos = models.IntegerField(help_text="Duración del servicio en minutos")
+    icono = models.CharField(max_length=50, blank=True, help_text="Nombre del icono Lucide (ej: scissors, user, star)")
     activo = models.BooleanField(default=True, help_text="Si está en False, no aparece al cliente")
     barberia = models.ForeignKey(Barberia, on_delete=models.CASCADE, null=True, related_name='servicios')
 
@@ -87,11 +88,11 @@ class Cita(models.Model):
     cliente_correo    = models.EmailField()
     cliente_direccion = models.TextField(help_text="Dirección donde el barbero va a atender")
 
-    # Servicio y horario
-    servicio    = models.ForeignKey(Servicio, on_delete=models.PROTECT, related_name='citas')
+    # Servicios y horario
+    servicios   = models.ManyToManyField(Servicio, related_name='citas')
     fecha       = models.DateField()
     hora_inicio = models.TimeField()
-    hora_fin    = models.TimeField()  # Se calcula automáticamente al guardar
+    hora_fin    = models.TimeField(null=True, blank=True)  # Calculado después en views o serializers
 
     barberia = models.ForeignKey(Barberia, on_delete=models.CASCADE, null=True, related_name='citas_lista')
     objects = TenantManager()
@@ -124,17 +125,11 @@ class Cita(models.Model):
         ]
 
     def save(self, *args, **kwargs):
-        """Calcula hora_fin automáticamente basándose en la duración del servicio."""
-        from datetime import datetime, timedelta
-        if self.hora_inicio and self.servicio_id:
-            inicio = datetime.combine(self.fecha, self.hora_inicio)
-            fin = inicio + timedelta(minutes=self.servicio.duracion_minutos)
-            self.hora_fin = fin.time()
         super().save(*args, **kwargs)
 
     def __str__(self):
         return (
-            f"{self.cliente_nombre} — {self.servicio.nombre} "
+            f"{self.cliente_nombre} "
             f"el {self.fecha} a las {self.hora_inicio.strftime('%H:%M')} "
             f"[{self.get_estado_display()}]"
         )

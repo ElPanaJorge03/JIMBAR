@@ -43,6 +43,9 @@ INSTALLED_APPS = [
     'corsheaders',                  # Permite peticiones desde React
     'django_celery_beat',           # Tareas programadas (confirmación automática)
     'django_celery_results',         # Guarda resultados de tareas en la BD
+    # Cloudinary para imágenes
+    'cloudinary_storage',
+    'cloudinary',
 
     # Apps del proyecto
     'citas',
@@ -215,3 +218,15 @@ LOGGING = {
         },
     },
 }
+
+# ============================================================
+# ARCHIVOS ESTÁTICOS Y MEDIA / CLOUDINARY
+# ============================================================
+STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+if os.getenv('CLOUDINARY_URL'):
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'

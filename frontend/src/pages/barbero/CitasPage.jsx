@@ -1,6 +1,6 @@
 /**
  * CitasPage.jsx — Panel principal del barbero.
- * Tiene dos pestañas: Citas y Bloqueos.
+ * Tiene tres pestañas: Citas, Bloqueos y Servicios.
  */
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -15,6 +15,7 @@ import {
 import { getCitas, cambiarEstadoCita } from '../../services/citasService';
 import { useAuth } from '../../context/AuthContext';
 import BloqueosPanel from '../../components/barbero/BloqueosPanel';
+import ServiciosPanel from '../../components/barbero/ServiciosPanel';
 
 dayjs.locale('es');
 
@@ -95,6 +96,7 @@ export default function CitasPage() {
                     {[
                         { id: 'citas', icon: <ClipboardList size={15} />, label: 'Citas' },
                         { id: 'bloqueos', icon: <CalendarOff size={15} />, label: 'Bloqueos' },
+                        { id: 'servicios', icon: <Scissors size={15} />, label: 'Servicios' },
                     ].map(tab => (
                         <button
                             key={tab.id}
@@ -124,6 +126,7 @@ export default function CitasPage() {
                 <div className="fade-in" key={pesta}>
                     {pesta === 'citas' && <PanelCitas />}
                     {pesta === 'bloqueos' && <BloqueosPanel />}
+                    {pesta === 'servicios' && <ServiciosPanel />}
                 </div>
             </div>
         </div>
@@ -242,7 +245,10 @@ function TarjetaCita({ cita, onConfirmar, onRechazar, onCompletar, cargando }) {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
                 <FilaDato icon={<Scissors size={13} />} label="Servicio">
-                    {cita.servicio_nombre} — <strong style={{ color: 'var(--accent)' }}>${cita.servicio_precio?.toLocaleString()}</strong>
+                    {cita.servicios?.map(s => s.nombre).join(', ')} —{' '}
+                    <strong style={{ color: 'var(--accent)' }}>
+                        ${cita.servicios?.reduce((acc, curr) => acc + curr.precio, 0).toLocaleString()}
+                    </strong>
                 </FilaDato>
                 <FilaDato icon={<MapPin size={13} />} label="Dirección">
                     {cita.cliente_direccion}

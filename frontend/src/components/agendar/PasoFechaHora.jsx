@@ -11,7 +11,7 @@ import { getDisponibilidad } from '../../services/citasService';
 
 dayjs.locale('es');
 
-export default function PasoFechaHora({ slug, servicio, onSiguiente, onAnterior }) {
+export default function PasoFechaHora({ slug, servicios, onSiguiente, onAnterior }) {
     const [fecha, setFecha] = useState('');
     const [slots, setSlots] = useState([]);
     const [slotSeleccionado, setSlotSeleccionado] = useState(null);
@@ -34,7 +34,8 @@ export default function PasoFechaHora({ slug, servicio, onSiguiente, onAnterior 
 
         setLoading(true);
         try {
-            const data = await getDisponibilidad(slug || 'jimbar', nuevaFecha, servicio.id);
+            const ids = servicios.map(s => s.id);
+            const data = await getDisponibilidad(slug || 'jimbar', nuevaFecha, ids);
 
             if (!data.disponible) {
                 setMensajeDia(data.motivo || 'No hay disponibilidad para ese día.');
@@ -58,10 +59,10 @@ export default function PasoFechaHora({ slug, servicio, onSiguiente, onAnterior 
         <div>
             <h1 style={{ marginBottom: '6px' }}>Elige fecha y hora</h1>
             <p style={{ marginBottom: '4px' }}>
-                Servicio: <strong style={{ color: 'var(--text-primary)' }}>{servicio.nombre}</strong>
+                Servicios: <strong style={{ color: 'var(--text-primary)' }}>{servicios.map(s => s.nombre).join(', ')}</strong>
             </p>
             <p style={{ marginBottom: '28px' }}>
-                Duración: <strong style={{ color: 'var(--text-primary)' }}>{servicio.duracion_minutos} min</strong>
+                Duración: <strong style={{ color: 'var(--text-primary)' }}>{servicios.reduce((acc, curr) => acc + curr.duracion_minutos, 0)} min</strong>
             </p>
 
             {/* Selector de fecha */}

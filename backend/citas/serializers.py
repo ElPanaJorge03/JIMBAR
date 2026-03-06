@@ -14,7 +14,7 @@ class ServicioSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Servicio
-        fields = ['id', 'nombre', 'precio', 'precio_formateado', 'duracion_minutos']
+        fields = ['id', 'nombre', 'precio', 'precio_formateado', 'duracion_minutos', 'icono', 'activo']
 
     def get_precio_formateado(self, obj):
         return f"${obj.precio:,}"
@@ -28,7 +28,7 @@ class CitaCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cita
         fields = [
-            'servicio',
+            'servicios',
             'fecha',
             'hora_inicio',
             'cliente_nombre',
@@ -56,7 +56,7 @@ class CitaCreateSerializer(serializers.ModelSerializer):
     def validate(self, data):
         fecha = data.get('fecha')
         hora_inicio = data.get('hora_inicio')
-        servicio = data.get('servicio')
+        servicios = data.get('servicios')
         correo = data.get('cliente_correo')
 
         # 1. No se puede agendar en el pasado
@@ -105,10 +105,11 @@ class CitaCreateSerializer(serializers.ModelSerializer):
             )
 
         # 4. Verificar que el slot no esté ocupado
-        #    Una cita ocupa el rango [hora_inicio, hora_fin)
-        #    Calculamos la hora_fin de la nueva cita
+        #    Calculamos la hora_fin de la nueva cita sumando la duración de todos los servicios
+        duracion_total = sum(s.duracion_minutos for s in servicios) if servicios else 0
+        from datetime import datetime, timedelta
         inicio_dt = datetime.combine(fecha, hora_inicio)
-        fin_dt = inicio_dt + timedelta(minutes=servicio.duracion_minutos)
+        fin_dt = inicio_dt + timedelta(minutes=duracion_total)
         hora_fin = fin_dt.time()
 
         citas_ese_dia = Cita.objects.for_tenant(barberia).filter(
@@ -126,13 +127,25 @@ class CitaCreateSerializer(serializers.ModelSerializer):
 
         return data
 
+    def create(self, validated_data):
+        servicios_data = validated_data.pop('servicios', [])
+        cita = Cita.objects.create(**validated_data)
+        cita.servicios.set(servicios_data)
+        
+        duracion_total = sum(s.duracion_minutos for s in servicios_data)
+        from datetime import datetime, timedelta
+        inicio = datetime.combine(cita.fecha, cita.hora_inicio)
+        fin = inicio + timedelta(minutes=duracion_total)
+        cita.hora_fin = fin.time()
+        cita.save()
+        return cita
+
 
 class CitaSerializer(serializers.ModelSerializer):
     """
     Serializer completo para que el barbero vea todos los detalles de una cita.
     """
-    servicio_nombre = serializers.CharField(source='servicio.nombre', read_only=True)
-    servicio_precio = serializers.IntegerField(source='servicio.precio', read_only=True)
+    servicios = ServicioSerializer(many=True, read_only=True)
     estado_display = serializers.CharField(source='get_estado_display', read_only=True)
 
     class Meta:
@@ -143,9 +156,7 @@ class CitaSerializer(serializers.ModelSerializer):
             'cliente_telefono',
             'cliente_correo',
             'cliente_direccion',
-            'servicio',
-            'servicio_nombre',
-            'servicio_precio',
+            'servicios',
             'fecha',
             'hora_inicio',
             'hora_fin',

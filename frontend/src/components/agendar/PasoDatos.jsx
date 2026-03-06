@@ -34,7 +34,7 @@ export default function PasoDatos({ slug, seleccion, onSiguiente, onAnterior }) 
         setLoading(true);
         try {
             const payload = {
-                servicio: seleccion.servicio.id,
+                servicios: seleccion.servicios.map(s => s.id),
                 fecha: seleccion.fecha,
                 hora_inicio: seleccion.slot.hora_inicio,
                 cliente_nombre: form.nombre.trim(),

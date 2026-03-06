@@ -13,9 +13,9 @@ export const getBarberiaInfo = (slug) =>
 export const getServicios = (slug) =>
     api.get(`/${slug}/servicios/`).then((r) => r.data);
 
-/** Obtiene los slots disponibles para una fecha y servicio */
-export const getDisponibilidad = (slug, fecha, servicioId) =>
-    api.get(`/${slug}/disponibilidad/`, { params: { fecha, servicio_id: servicioId } }).then((r) => r.data);
+/** Obtiene los slots disponibles para una fecha y servicios seleccionados */
+export const getDisponibilidad = (slug, fecha, serviciosIds) =>
+    api.get(`/${slug}/disponibilidad/`, { params: { fecha, servicios_ids: serviciosIds.join(',') } }).then((r) => r.data);
 
 /** Crea una nueva cita para una barbería específica */
 export const crearCita = (slug, datos) =>
@@ -50,3 +50,21 @@ export const bloquearDia = (fecha, motivo = '') =>
 /** Desbloquea un día */
 export const desbloquearDia = (id) =>
     api.delete(`/barbero/bloqueos/${id}/`);
+
+// ── Servicios (CRUD para el barbero) ─────────────────────────
+
+/** Lista todos los servicios incluyendo inactivos */
+export const getServiciosBarbero = () =>
+    api.get('/barbero/servicios/').then((r) => r.data);
+
+/** Crea un nuevo servicio */
+export const crearServicio = (datos) =>
+    api.post('/barbero/servicios/', datos).then((r) => r.data);
+
+/** Actualiza un servicio existente */
+export const actualizarServicio = (id, datos) =>
+    api.patch(`/barbero/servicios/${id}/`, datos).then((r) => r.data);
+
+/** Elimina un servicio */
+export const eliminarServicio = (id) =>
+    api.delete(`/barbero/servicios/${id}/`);

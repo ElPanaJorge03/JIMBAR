@@ -23,7 +23,7 @@ export default function AgendarPage() {
     const navigate = useNavigate();
     const [paso, setPaso] = useState(0);
     const [seleccion, setSeleccion] = useState({
-        servicio: null,     // { id, nombre, precio, duracion_minutos }
+        servicios: [],      // Array de { id, nombre, precio, duracion_minutos }
         fecha: null,        // string 'YYYY-MM-DD'
         slot: null,         // { hora_inicio, hora_fin }
         datos: null,        // { nombre, telefono, correo, direccion, notas }
@@ -64,7 +64,7 @@ export default function AgendarPage() {
                             AGENDAMIENTO
                         </span>
                         <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>
-                            · Barbería a domicilio
+                            · Reservas de Barbería
                         </span>
                     </div>
                 </div>
@@ -83,13 +83,14 @@ export default function AgendarPage() {
                     {paso === 0 && (
                         <PasoServicio
                             slug={slug}
-                            onSiguiente={(servicio) => siguiente({ servicio })}
+                            seleccion={seleccion.servicios}
+                            onSiguiente={(servicios) => siguiente({ servicios })}
                         />
                     )}
                     {paso === 1 && (
                         <PasoFechaHora
                             slug={slug}
-                            servicio={seleccion.servicio}
+                            servicios={seleccion.servicios}
                             onSiguiente={(fecha, slot) => siguiente({ fecha, slot })}
                             onAnterior={anterior}
                         />
@@ -107,7 +108,7 @@ export default function AgendarPage() {
                             slug={slug}
                             seleccion={seleccion}
                             onNuevaCita={() => {
-                                setSeleccion({ servicio: null, fecha: null, slot: null, datos: null, citaCreada: null });
+                                setSeleccion({ servicios: [], fecha: null, slot: null, datos: null, citaCreada: null });
                                 setPaso(0);
                             }}
                         />

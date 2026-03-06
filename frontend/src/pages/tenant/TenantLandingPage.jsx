@@ -13,22 +13,12 @@ export default function TenantLandingPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
 
-    // Bug Fix #4: Si ya hay sesión, redirigir ANTES de hacer fetch
-    // evita peticiones inútiles y loops de carga.
-    if (authenticated) {
-        if (['BARBERIA_ADMIN', 'SUPERADMIN', 'BARBERO', 'barbero'].includes(role)) {
-            return <Navigate to="/barbero/citas" replace />;
-        } else {
-            return <Navigate to="/cliente/citas" replace />;
-        }
-    }
-
     useEffect(() => {
         getBarberiaInfo(slug)
             .then(data => {
                 setBarberia(data);
                 setLoading(false);
-                document.title = `${data.nombre} | Barbería a domicilio`;
+                document.title = `${data.nombre} | Reservas`;
             })
             .catch(() => {
                 setError(true);
@@ -73,7 +63,7 @@ export default function TenantLandingPage() {
                         textTransform: 'uppercase',
                         marginBottom: '12px',
                     }}>
-                        Barbería a domicilio
+                        Reservas de Barbería
                     </span>
                     <h1 style={{
                         fontSize: 'clamp(2.5rem, 8vw, 4.5rem)',
@@ -183,7 +173,7 @@ export default function TenantLandingPage() {
             }}>
                 <div style={{ opacity: 0.6, fontSize: '0.875rem' }}>
                     <p style={{ marginBottom: '4px' }}>
-                        <strong>{barberia.nombre}</strong> — Barbería a domicilio
+                        <strong>{barberia.nombre}</strong> — Reservas de Barbería
                     </p>
                     <p style={{ margin: 0 }}>Gestión impulsada por <strong>Jimbar App</strong></p>
                 </div>

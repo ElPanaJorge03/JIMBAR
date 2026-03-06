@@ -22,10 +22,10 @@ class BloqueoDiaAdmin(admin.ModelAdmin):
 @admin.register(Cita)
 class CitaAdmin(admin.ModelAdmin):
     list_display = (
-        'cliente_nombre', 'servicio', 'fecha',
+        'cliente_nombre', 'fecha',
         'hora_inicio', 'hora_fin', 'estado', 'creada_en'
     )
-    list_filter = ('estado', 'fecha', 'servicio')
+    list_filter = ('estado', 'fecha', 'servicios')
     search_fields = ('cliente_nombre', 'cliente_correo', 'cliente_telefono')
     ordering = ('-fecha', '-hora_inicio')
     readonly_fields = ('hora_fin', 'creada_en', 'actualizada_en')
