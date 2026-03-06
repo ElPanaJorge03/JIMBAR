@@ -121,24 +121,23 @@ export default function TenantLandingPage() {
                     gap: '12px',
                     maxWidth: '320px',
                     margin: '0 auto',
+                    width: '100%',
                 }}>
                     <button
                         className="btn btn--primary"
                         onClick={() => navigate(`/${slug}/agendar`)}
-                        style={{ fontSize: '1rem', minHeight: '52px' }}
+                        style={{ fontSize: '1rem', minHeight: '52px', width: '100%' }}
                     >
                         Agendar cita ahora
                     </button>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                        <button
-                            className="btn btn--secondary"
-                            onClick={() => navigate('/login')}
-                            style={{ minHeight: '44px', fontSize: '0.9rem' }}
-                        >
-                            Mis Citas
-                        </button>
-                    </div>
+                    <button
+                        className="btn btn--secondary"
+                        onClick={() => navigate('/login')}
+                        style={{ minHeight: '44px', fontSize: '0.9rem', width: '100%' }}
+                    >
+                        Mis Citas
+                    </button>
                 </div>
             </section>
 

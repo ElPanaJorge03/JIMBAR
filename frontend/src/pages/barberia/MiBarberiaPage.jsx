@@ -6,7 +6,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../../services/api';
-import { Save, ArrowLeft, ExternalLink, Upload } from 'lucide-react';
+import { Save, ArrowLeft, ExternalLink, Upload, Trash2 } from 'lucide-react';
 
 const BADGE_COLORES = {
     TRIAL: { bg: 'rgba(162,112,53,0.15)', color: '#c89b5a', label: 'Trial' },
@@ -57,6 +57,21 @@ export default function MiBarberiaPage() {
             setForm(prev => ({ ...prev, [name]: value }));
         }
         if (success) setSuccess('');
+    };
+    const handleDeleteImage = async (campo) => {
+        if (!confirm('¿Seguro que quieres eliminar esta imagen?')) return;
+        try {
+            const formData = new FormData();
+            // Enviar un string vacío fuerza a Cloudinary a borrar la referencia
+            formData.append(campo, '');
+            const { data } = await api.patch('/mi-barberia/', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            setBarberia(data);
+            setSuccess('Imagen eliminada.');
+        } catch {
+            setError('No se pudo eliminar la imagen.');
+        }
     };
 
     const handleSave = async (e) => {
@@ -238,8 +253,20 @@ export default function MiBarberiaPage() {
                             <div className="form-group">
                                 <label className="form-label">Logo de la Barbería</label>
                                 {barberia?.logo_url && (
-                                    <div style={{ marginBottom: 10 }}>
-                                        <img src={barberia.logo_url} alt="Logo" style={{ width: 100, borderRadius: 8, border: '1px solid #333', objectFit: 'cover' }} />
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: 10 }}>
+                                        <img src={barberia.logo_url} alt="Logo" style={{ width: 80, height: 80, borderRadius: '50%', border: '2px solid var(--accent)', objectFit: 'cover' }} />
+                                        <button
+                                            type="button"
+                                            onClick={() => handleDeleteImage('logo')}
+                                            style={{
+                                                display: 'inline-flex', alignItems: 'center', gap: '6px',
+                                                background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)',
+                                                color: '#ef4444', padding: '8px 14px', borderRadius: '8px',
+                                                fontSize: '0.8rem', cursor: 'pointer'
+                                            }}
+                                        >
+                                            <Trash2 size={14} /> Eliminar logo
+                                        </button>
                                     </div>
                                 )}
                                 <label style={{
@@ -262,8 +289,20 @@ export default function MiBarberiaPage() {
                             <div className="form-group">
                                 <label className="form-label">Imagen de Portada</label>
                                 {barberia?.imagen_portada_url && (
-                                    <div style={{ marginBottom: 10 }}>
-                                        <img src={barberia.imagen_portada_url} alt="Portada" style={{ width: '100%', maxWidth: 280, borderRadius: 8, border: '1px solid #333', objectFit: 'cover' }} />
+                                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: 10 }}>
+                                        <img src={barberia.imagen_portada_url} alt="Portada" style={{ width: '100%', maxWidth: 200, borderRadius: 8, border: '1px solid #333', objectFit: 'cover' }} />
+                                        <button
+                                            type="button"
+                                            onClick={() => handleDeleteImage('imagen_portada')}
+                                            style={{
+                                                display: 'inline-flex', alignItems: 'center', gap: '6px',
+                                                background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)',
+                                                color: '#ef4444', padding: '8px 14px', borderRadius: '8px',
+                                                fontSize: '0.8rem', cursor: 'pointer', flexShrink: 0
+                                            }}
+                                        >
+                                            <Trash2 size={14} /> Eliminar portada
+                                        </button>
                                     </div>
                                 )}
                                 <label style={{
