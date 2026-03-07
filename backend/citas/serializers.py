@@ -201,10 +201,11 @@ class RegistroClienteSerializer(serializers.ModelSerializer):
     """
     password = serializers.CharField(write_only=True, min_length=6)
     password2 = serializers.CharField(write_only=True, label='Confirmar contraseña')
+    barberia_slug = serializers.CharField(write_only=True, required=False, allow_blank=True)
 
     class Meta:
         model = User
-        fields = ['first_name', 'email', 'password', 'password2']
+        fields = ['first_name', 'email', 'password', 'password2', 'barberia_slug']
 
     def validate_email(self, value):
         if User.objects.filter(email=value).exists():
@@ -218,6 +219,8 @@ class RegistroClienteSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data.pop('password2')
+        barberia_slug = validated_data.pop('barberia_slug', None)
+        
         # Usamos el correo como username (único y familiar para el cliente)
         user = User.objects.create_user(
             username=validated_data['email'],
@@ -225,13 +228,23 @@ class RegistroClienteSerializer(serializers.ModelSerializer):
             first_name=validated_data.get('first_name', ''),
             password=validated_data['password'],
         )
-        # Bug Fix #5: Crear PerfilUsuario con rol CLIENTE
-        # Sin esto el JWT fallback los detecta mal
+        
+        # Vincular a barbería si se proporciona el slug
+        barberia_obj = None
+        if barberia_slug:
+            # Por si el usuario pega la URL completa (ej: jimbar.app/mi-barberia)
+            clean_slug = barberia_slug.strip().strip('/').split('/')[-1]
+            try:
+                barberia_obj = Barberia.objects.get(slug=clean_slug)
+            except Barberia.DoesNotExist:
+                pass
+
+        # Crear PerfilUsuario con rol CLIENTE
         from barberias.models import PerfilUsuario
         PerfilUsuario.objects.create(
             user=user,
             role=PerfilUsuario.Rol.CLIENTE,
-            barberia=None  # Los clientes no pertenecen a un tenant
+            barberia=barberia_obj
         )
         return user
 

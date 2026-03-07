@@ -137,7 +137,7 @@ export default function TenantLandingPage() {
 
                     <button
                         className="btn btn--secondary"
-                        onClick={() => navigate('/login')}
+                        onClick={() => navigate('/login?b=' + slug)}
                         style={{ minHeight: '44px', fontSize: '0.9rem', width: '100%' }}
                     >
                         Mis Citas

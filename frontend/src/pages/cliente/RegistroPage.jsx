@@ -2,17 +2,22 @@
  * RegistroPage.jsx — Registro de nuevos clientes.
  */
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Check } from 'lucide-react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { Check, Scissors, User } from 'lucide-react';
 import api from '../../services/api';
 
 export default function RegistroPage() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const b = searchParams.get('b') || '';
+
+    const [tipoCuenta, setTipoCuenta] = useState(null);
     const [form, setForm] = useState({
         first_name: '',
         email: '',
         password: '',
         password2: '',
+        barberia_slug: b,
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -84,6 +89,62 @@ export default function RegistroPage() {
         );
     }
 
+    if (tipoCuenta === null) {
+        return (
+            <div style={{
+                minHeight: '100dvh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '24px',
+                flexDirection: 'column',
+            }}>
+                <div style={{ maxWidth: '400px', width: '100%', textAlign: 'center' }}>
+                    <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '16px' }}>
+                        <button
+                            className="btn btn--ghost"
+                            onClick={() => navigate('/login')}
+                            style={{ paddingLeft: 0 }}
+                        >
+                            ← Volver al login
+                        </button>
+                    </div>
+
+                    <h1 style={{ marginBottom: '12px' }}>Crear cuenta</h1>
+                    <p style={{ marginBottom: '32px', color: 'var(--text-secondary)' }}>
+                        ¿Qué tipo de cuenta quieres crear?
+                    </p>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <button
+                            className="btn btn--secondary"
+                            style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '16px', border: '1px solid var(--border)' }}
+                            onClick={() => setTipoCuenta('cliente')}
+                        >
+                            <User size={32} color="var(--accent)" />
+                            <div style={{ textAlign: 'left' }}>
+                                <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Soy un Cliente</h3>
+                                <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: 1.4, marginTop: '4px' }}>Agenda citas y lleva el control de tus cortes.</p>
+                            </div>
+                        </button>
+
+                        <button
+                            className="btn btn--secondary"
+                            style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '16px', border: '1px solid rgba(162,112,53,0.3)', background: 'rgba(162,112,53,0.05)' }}
+                            onClick={() => navigate('/registro-barberia')}
+                        >
+                            <Scissors size={32} color="var(--accent)" />
+                            <div style={{ textAlign: 'left' }}>
+                                <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--accent)' }}>Soy un Barbero / Negocio</h3>
+                                <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: 1.4, marginTop: '4px' }}>Crea tu página web, gestiona citas y gana más.</p>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div style={{
             minHeight: '100dvh',
@@ -97,10 +158,10 @@ export default function RegistroPage() {
 
                 <button
                     className="btn btn--ghost"
-                    onClick={() => navigate('/login')}
+                    onClick={() => setTipoCuenta(null)}
                     style={{ marginBottom: '24px', paddingLeft: 0 }}
                 >
-                    ← Volver
+                    ← Atrás
                 </button>
 
                 <div style={{ marginBottom: '32px' }}>
@@ -139,6 +200,24 @@ export default function RegistroPage() {
                                 autoComplete="email"
                                 required
                             />
+                        </div>
+
+                        <div className="form-group">
+                            <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <span>Enlace de tu barbería</span>
+                                <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>(Opcional)</span>
+                            </label>
+                            <input
+                                className="form-input"
+                                type="text"
+                                name="barberia_slug"
+                                value={form.barberia_slug}
+                                onChange={handleChange}
+                                placeholder="ej: jimbar.app/mi-barberia"
+                            />
+                            <small style={{ color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+                                Si tu barbero te invitó, escribe aquí el nombre de su enlace para vincularte a su negocio.
+                            </small>
                         </div>
 
                         <div className="form-group">

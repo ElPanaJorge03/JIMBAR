@@ -111,7 +111,7 @@ export default function ClienteLoginPage() {
 
                 <p style={{ textAlign: 'center', marginTop: '20px', fontSize: '0.875rem' }}>
                     ¿No tienes cuenta?{' '}
-                    <Link to="/registro" style={{ color: 'var(--accent)' }}>Regístrate</Link>
+                    <Link to={`/registro${searchParams.get('b') ? '?b=' + searchParams.get('b') : ''}`} style={{ color: 'var(--accent)' }}>Regístrate</Link>
                 </p>
 
                 <p style={{ textAlign: 'center', marginTop: '10px', fontSize: '0.875rem' }}>
