@@ -70,7 +70,13 @@ export function usePushNotifications() {
                 return;
             }
 
-            // 3. Suscribirse al push
+            // 3. Limpiar suscripción antigua si existe (puede tener clave VAPID diferente)
+            const subExistente = await reg.pushManager.getSubscription();
+            if (subExistente) {
+                await subExistente.unsubscribe();
+            }
+
+            // 4. Suscribirse al push con la clave VAPID actual
             let subscription;
             try {
                 subscription = await reg.pushManager.subscribe({
@@ -82,7 +88,7 @@ export function usePushNotifications() {
                 return;
             }
 
-            // 4. Enviar la suscripción al backend
+            // 5. Enviar la suscripción al backend
             try {
                 await api.post('/push/suscribir/', subscription.toJSON());
             } catch (apiErr) {
