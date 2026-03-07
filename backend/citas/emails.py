@@ -35,7 +35,7 @@ def _generar_html(titulo, contenido_html):
 def _get_cita(cita_id):
     from .models import Cita
     try:
-        return Cita.objects.prefetch_related('servicios').get(id=cita_id)
+        return Cita.objects.prefetch_related('servicios').select_related('barberia').get(id=cita_id)
     except Cita.DoesNotExist:
         logger.warning(f"Email: cita {cita_id} no encontrada.")
         return None
@@ -73,32 +73,35 @@ def enviar_correo_nueva_cita(cita_id, origen_url=None):
         return
 
     # === AL BARBERO ===
-    mensaje_barbero = (
-        f"Nueva solicitud de cita:\n\n"
-        f"Cliente: {cita.cliente_nombre}\n"
-        f"Teléfono: {cita.cliente_telefono}\n"
-        f"Servicio(s): {', '.join(s.nombre for s in cita.servicios.all())}\n"
-        f"Fecha: {cita.fecha.strftime('%d/%m/%Y')}\n"
-        f"Hora: {cita.hora_inicio.strftime('%H:%M')}\n"
-        f"Dirección: {cita.cliente_direccion}\n"
-        f"Notas: {cita.notas or 'Ninguna'}\n\n"
-        f"Tienes {settings.AUTO_CONFIRM_MINUTES} minutos para confirmar."
-    )
+    lineas = [
+        "Nueva solicitud de reserva:",
+        "",
+        f"Cliente: {cita.cliente_nombre}",
+        f"Teléfono: {cita.cliente_telefono}",
+        f"Servicio(s): {', '.join(s.nombre for s in cita.servicios.all())}",
+        f"Fecha: {cita.fecha.strftime('%d/%m/%Y')}",
+        f"Hora: {cita.hora_inicio.strftime('%H:%M')}",
+    ]
+    if cita.cliente_direccion and cita.cliente_direccion.strip():
+        lineas.append(f"Dirección: {cita.cliente_direccion.strip()}")
+    lineas.extend(["", f"Notas: {cita.notas or 'Ninguna'}", "", f"Tienes {settings.AUTO_CONFIRM_MINUTES} minutos para confirmar."])
+    mensaje_barbero = "\n".join(lineas)
     html_barbero = _generar_html(
-        "Nueva Cita Solicitada",
+        "Nueva Reserva Solicitada",
         mensaje_barbero.replace('\n', '<br>')
     )
+    email_barbero = cita.barberia.email if cita.barberia and cita.barberia.email else settings.BARBER_EMAIL
     _enviar(
-        asunto=f"[Jimbar] Nueva cita — {cita.cliente_nombre}",
+        asunto=f"[Jimbar] Nueva reserva — {cita.cliente_nombre}",
         mensaje=mensaje_barbero,
-        destinatarios=[settings.BARBER_EMAIL],
+        destinatarios=[email_barbero],
         html_mensaje=html_barbero
     )
 
     # === AL CLIENTE ===
     mensaje_cliente = (
         f"Hola {cita.cliente_nombre},\n\n"
-        f"Hemos recibido tu solicitud de cita para el/los servicio/s de '{', '.join(s.nombre for s in cita.servicios.all())}'.\n\n"
+        f"Hemos recibido tu solicitud de reserva para el/los servicio/s de '{', '.join(s.nombre for s in cita.servicios.all())}'.\n\n"
         f"Detalles:\n"
         f"Fecha: {cita.fecha.strftime('%d/%m/%Y')}\n"
         f"Hora: {cita.hora_inicio.strftime('%H:%M')}\n\n"
@@ -111,7 +114,7 @@ def enviar_correo_nueva_cita(cita_id, origen_url=None):
         mensaje_cliente += f"Ingresa aquí en cualquier momento para cancelar:\n{origen_url}/cancelar/{cita_id}\n\n"
         btn_cancelar = f"""
         <div style="text-align: center; margin-top: 25px;">
-            <a href="{origen_url}/cancelar/{cita_id}" style="background-color: #333; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; border: 1px solid #444;">Modificar o Cancelar Cita</a>
+            <a href="{origen_url}/cancelar/{cita_id}" style="background-color: #333; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; border: 1px solid #444;">Modificar o Cancelar Reserva</a>
         </div>
         <br>
         """
@@ -121,46 +124,50 @@ def enviar_correo_nueva_cita(cita_id, origen_url=None):
     html_cliente += "¡Gracias por preferir Jimbar!"
 
     _enviar(
-        asunto=f"[Jimbar] Solicitud de cita en revisión ⏳",
+        asunto=f"[Jimbar] Solicitud de reserva en revisión ⏳",
         mensaje=mensaje_cliente,
         destinatarios=[cita.cliente_correo],
         html_mensaje=_generar_html("Solicitud en Revisión", html_cliente)
     )
 
 def enviar_correo_estado_cita(cita_id, nuevo_estado):
-    """Notifica al cliente cuando el barbero cambia el estado de su cita."""
+    """Notifica al cliente cuando el barbero cambia el estado de su reserva."""
     cita = _get_cita(cita_id)
     if not cita:
         return
 
     titulo_html = ""
     if nuevo_estado == 'CONFIRMADA':
-        asunto = "[Jimbar] Tu cita fue confirmada ✅"
-        titulo_html = "Cita Confirmada"
-        mensaje = (
-            f"Hola {cita.cliente_nombre},\n\n"
-            f"Tu cita ha sido confirmada:\n\n"
-            f"Servicio(s): {', '.join(s.nombre for s in cita.servicios.all())}\n"
-            f"Fecha: {cita.fecha.strftime('%d/%m/%Y')}\n"
-            f"Hora: {cita.hora_inicio.strftime('%H:%M')}\n"
-            f"Dirección: {cita.cliente_direccion}\n\n"
-            f"¡Hasta pronto!"
-        )
+        asunto = "[Jimbar] Tu reserva fue confirmada ✅"
+        titulo_html = "Reserva Confirmada"
+        lineas = [
+            f"Hola {cita.cliente_nombre},",
+            "",
+            "Tu reserva ha sido confirmada:",
+            "",
+            f"Servicio(s): {', '.join(s.nombre for s in cita.servicios.all())}",
+            f"Fecha: {cita.fecha.strftime('%d/%m/%Y')}",
+            f"Hora: {cita.hora_inicio.strftime('%H:%M')}",
+        ]
+        if cita.cliente_direccion and cita.cliente_direccion.strip():
+            lineas.append(f"Dirección: {cita.cliente_direccion.strip()}")
+        lineas.extend(["", "¡Hasta pronto!"])
+        mensaje = "\n".join(lineas)
     elif nuevo_estado == 'RECHAZADA':
-        asunto = "[Jimbar] Tu cita no pudo confirmarse"
-        titulo_html = "Cita no confirmada"
+        asunto = "[Jimbar] Tu reserva no pudo confirmarse"
+        titulo_html = "Reserva no confirmada"
         mensaje = (
             f"Hola {cita.cliente_nombre},\n\n"
-            f"Lamentablemente tu cita del {cita.fecha.strftime('%d/%m/%Y')} "
+            f"Lamentablemente tu reserva del {cita.fecha.strftime('%d/%m/%Y')} "
             f"a las {cita.hora_inicio.strftime('%H:%M')} no pudo ser atendida.\n\n"
-            f"Puedes agendar una nueva cita en otro horario disponible."
+            f"Puedes agendar una nueva reserva en otro horario disponible."
         )
     elif nuevo_estado == 'COMPLETADA':
         asunto = "[Jimbar] ¡Gracias por tu visita! 💇‍♂️"
         titulo_html = "Servicio Completado"
         mensaje = (
             f"Hola {cita.cliente_nombre},\n\n"
-            f"Tu cita ha sido marcada como completada. Esperamos "
+            f"Tu reserva ha sido marcada como completada. Esperamos "
             f"que te haya encantado el servicio de '{', '.join(s.nombre for s in cita.servicios.all())}'.\n\n"
             f"¡Vuelve pronto a Jimbar!"
         )
@@ -176,23 +183,24 @@ def enviar_correo_estado_cita(cita_id, nuevo_estado):
 
 
 def enviar_correo_cancelacion_cliente(cita_id):
-    """Notifica al barbero cuando un cliente cancela."""
+    """Notifica al barbero cuando un cliente cancela su reserva."""
     cita = _get_cita(cita_id)
     if not cita:
         return
 
     mensaje = (
-        f"El cliente {cita.cliente_nombre} canceló su cita:\n\n"
+        f"El cliente {cita.cliente_nombre} canceló su reserva:\n\n"
         f"Servicio(s): {', '.join(s.nombre for s in cita.servicios.all())}\n"
         f"Fecha: {cita.fecha.strftime('%d/%m/%Y')}\n"
         f"Hora: {cita.hora_inicio.strftime('%H:%M')}\n"
         f"Teléfono: {cita.cliente_telefono}\n"
     )
+    email_barbero = cita.barberia.email if cita.barberia and cita.barberia.email else settings.BARBER_EMAIL
     _enviar(
-        asunto=f"[Jimbar] Cita cancelada — {cita.cliente_nombre}",
+        asunto=f"[Jimbar] Reserva cancelada — {cita.cliente_nombre}",
         mensaje=mensaje,
-        destinatarios=[settings.BARBER_EMAIL],
-        html_mensaje=_generar_html("Cita Cancelada", mensaje.replace('\n', '<br>'))
+        destinatarios=[email_barbero],
+        html_mensaje=_generar_html("Reserva Cancelada", mensaje.replace('\n', '<br>'))
     )
 
 def _enviar(asunto, mensaje, destinatarios, html_mensaje=None):

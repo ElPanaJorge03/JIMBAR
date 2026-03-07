@@ -1,6 +1,6 @@
-# Jimbar — Barbería a domicilio
+# Jimbar — Tu barbería online
 
-Aplicación web para gestión de citas de barbería a domicilio.
+Aplicación web para gestión de reservas de barbería: presencial, a domicilio o ambos.
 
 ## Estructura del proyecto
 

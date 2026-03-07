@@ -17,14 +17,14 @@ export default function CancelarPage() {
         try {
             await api.post(`/${slug || 'jimbar'}/citas/${id}/cancelar/`, { correo });
             setEstado('success');
-            setMensaje('Tu cita ha sido cancelada exitosamente.');
+            setMensaje('Tu reserva ha sido cancelada exitosamente.');
         } catch (err) {
             setEstado('error');
             const data = err.response?.data;
             if (data?.error) {
                 setMensaje(data.error);
             } else {
-                setMensaje('No se pudo cancelar la cita. Verifica el correo e intenta de nuevo.');
+                setMensaje('No se pudo cancelar la reserva. Verifica el correo e intenta de nuevo.');
             }
         }
     };
@@ -48,7 +48,7 @@ export default function CancelarPage() {
                 </button>
 
                 <div className="card">
-                    <h2 style={{ marginBottom: '16px' }}>Cancelar Cita</h2>
+                    <h2 style={{ marginBottom: '16px' }}>Cancelar reserva</h2>
 
                     {estado === 'success' ? (
                         <div style={{ textAlign: 'center' }}>
@@ -62,7 +62,7 @@ export default function CancelarPage() {
                     ) : (
                         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                             <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                                Para cancelar esta cita (ID: {id}), por favor ingresa el correo electrónico con el que la agendaste.
+                                Para cancelar esta reserva (ID: {id}), ingresa el correo electrónico con el que la agendaste.
                             </p>
 
                             <div className="form-group">

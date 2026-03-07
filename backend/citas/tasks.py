@@ -108,9 +108,11 @@ def enviar_correo_nueva_cita(cita_id):
     """
     from .models import Cita
     try:
-        cita = Cita.objects.get(id=cita_id)
+        cita = Cita.objects.select_related('barberia').get(id=cita_id)
     except Cita.DoesNotExist:
         return
+
+    email_barbero = cita.barberia.email if cita.barberia and cita.barberia.email else settings.BARBER_EMAIL
 
     mensaje = (
         f"Nueva solicitud de cita:\n\n"
@@ -129,7 +131,7 @@ def enviar_correo_nueva_cita(cita_id):
             subject=f"[Jimbar] Nueva cita — {cita.cliente_nombre}",
             message=mensaje,
             from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[settings.BARBER_EMAIL],
+            recipient_list=[email_barbero],
             fail_silently=True,
         )
     except Exception as e:
@@ -188,9 +190,11 @@ def enviar_correo_cancelacion_cliente(cita_id):
     """
     from .models import Cita
     try:
-        cita = Cita.objects.get(id=cita_id)
+        cita = Cita.objects.select_related('barberia').get(id=cita_id)
     except Cita.DoesNotExist:
         return
+
+    email_barbero = cita.barberia.email if cita.barberia and cita.barberia.email else settings.BARBER_EMAIL
 
     mensaje = (
         f"El cliente {cita.cliente_nombre} canceló su cita:\n\n"
@@ -205,7 +209,7 @@ def enviar_correo_cancelacion_cliente(cita_id):
             subject=f"[Jimbar] Cita cancelada — {cita.cliente_nombre}",
             message=mensaje,
             from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[settings.BARBER_EMAIL],
+            recipient_list=[email_barbero],
             fail_silently=True,
         )
     except Exception as e:

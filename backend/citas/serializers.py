@@ -22,9 +22,12 @@ class ServicioSerializer(serializers.ModelSerializer):
 
 class CitaCreateSerializer(serializers.ModelSerializer):
     """
-    Serializer para que un cliente (registrado o no) cree una cita.
+    Serializer para que un cliente (registrado o no) cree una reserva.
     Solo recibe los campos necesarios. El estado siempre arranca en PENDIENTE.
+    La dirección es obligatoria solo si la barbería atiende a domicilio o ambos.
     """
+    cliente_direccion = serializers.CharField(required=False, allow_blank=True)
+
     class Meta:
         model = Cita
         fields = [
@@ -47,8 +50,10 @@ class CitaCreateSerializer(serializers.ModelSerializer):
         if len(value.strip()) < 7:
             raise serializers.ValidationError("Por favor, ingresa un número de teléfono válido.")
         return value
-        
+
     def validate_cliente_direccion(self, value):
+        if not value or not value.strip():
+            return value
         if len(value.strip()) < 5:
             raise serializers.ValidationError("Por favor, ingresa una dirección válida más detallada.")
         return value
@@ -58,15 +63,25 @@ class CitaCreateSerializer(serializers.ModelSerializer):
         hora_inicio = data.get('hora_inicio')
         servicios = data.get('servicios')
         correo = data.get('cliente_correo')
+        direccion = (data.get('cliente_direccion') or '').strip()
+
+        barberia = self.context.get('barberia')
+        if not barberia:
+            barberia = Barberia.objects.first()
+
+        # 0. Dirección obligatoria solo si la barbería atiende a domicilio o ambos
+        estilo = getattr(barberia, 'estilo_trabajo', None) or 'AMBOS'
+        if estilo in ('DOMICILIO', 'AMBOS') and not direccion:
+            raise serializers.ValidationError({
+                'cliente_direccion': 'Por favor, ingresa la dirección donde deseas recibir el servicio.'
+            })
+        if estilo == 'PRESENCIAL':
+            data['cliente_direccion'] = ''  # No se usa
 
         # 1. No se puede agendar en el pasado
         ahora = timezone.localtime(timezone.now())
         if fecha < ahora.date():
             raise serializers.ValidationError("No puedes agendar una cita en el pasado.")
-            
-        barberia = self.context.get('barberia')
-        if not barberia:
-            barberia = Barberia.objects.first()
             
         # Anti-spam: Máximo 3 citas por día por cliente
         citas_cliente_hoy = Cita.objects.for_tenant(barberia).filter(

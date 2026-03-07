@@ -86,7 +86,7 @@ class Cita(models.Model):
     cliente_nombre    = models.CharField(max_length=150)
     cliente_telefono  = models.CharField(max_length=20)
     cliente_correo    = models.EmailField()
-    cliente_direccion = models.TextField(help_text="Dirección donde el barbero va a atender")
+    cliente_direccion = models.TextField(blank=True, help_text="Dirección (obligatoria solo si la barbería atiende a domicilio)")
 
     # Servicios y horario
     servicios   = models.ManyToManyField(Servicio, related_name='citas')
@@ -112,8 +112,8 @@ class Cita(models.Model):
     notas = models.TextField(blank=True, help_text="Indicaciones especiales del cliente")
 
     class Meta:
-        verbose_name = "Cita"
-        verbose_name_plural = "Citas"
+        verbose_name = "Reserva"
+        verbose_name_plural = "Reservas"
         ordering = ['fecha', 'hora_inicio']
         # Evita citas duplicadas en el mismo horario
         constraints = [

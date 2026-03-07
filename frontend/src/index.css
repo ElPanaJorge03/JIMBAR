@@ -34,7 +34,7 @@
   --warning:       #e0a84c;
   --info:          #5c9be0;
 
-  /* Estados de cita */
+  /* Estados de reserva */
   --state-pending:   #e0a84c;
   --state-confirmed: #4caf7d;
   --state-rejected:  #e05c5c;
@@ -254,7 +254,7 @@ a:hover { color: var(--accent-hover); }
   color: var(--error);
 }
 
-/* ── Badges de estado de cita ───────────────────────────────── */
+/* ── Badges de estado de reserva ───────────────────────────────── */
 .badge {
   display: inline-flex;
   align-items: center;

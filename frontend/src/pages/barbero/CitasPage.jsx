@@ -1,6 +1,6 @@
 /**
  * CitasPage.jsx — Panel principal del barbero.
- * Tiene tres pestañas: Citas, Bloqueos y Servicios.
+ * Tiene tres pestañas: Reservas, Bloqueos y Servicios.
  */
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -101,7 +101,7 @@ export default function CitasPage() {
                     }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
                             <div>
-                                <strong style={{ color: 'var(--accent)', fontSize: '0.95rem', display: 'block' }}>No pierdas ni una cita</strong>
+                                <strong style={{ color: 'var(--accent)', fontSize: '0.95rem', display: 'block' }}>No pierdas ni una reserva</strong>
                                 <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Activa las notificaciones push para recibir alertas al instante.</span>
                             </div>
                             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -147,7 +147,7 @@ export default function CitasPage() {
                     width: 'fit-content',
                 }}>
                     {[
-                        { id: 'citas', icon: <ClipboardList size={15} />, label: 'Citas' },
+                        { id: 'citas', icon: <ClipboardList size={15} />, label: 'Reservas' },
                         { id: 'bloqueos', icon: <CalendarOff size={15} />, label: 'Bloqueos' },
                         { id: 'servicios', icon: <Scissors size={15} />, label: 'Servicios' },
                     ].map(tab => (
@@ -186,7 +186,7 @@ export default function CitasPage() {
     );
 }
 
-/** Panel de listado y gestión de citas */
+/** Panel de listado y gestión de reservas */
 function PanelCitas() {
     const [citas, setCitas] = useState([]);
     const [filtroEstado, setFiltroEstado] = useState('PENDIENTE');
@@ -221,7 +221,7 @@ function PanelCitas() {
     return (
         <div>
             <div style={{ marginBottom: '20px' }}>
-                <h1 style={{ marginBottom: '4px' }}>Citas</h1>
+                <h1 style={{ marginBottom: '4px' }}>Reservas</h1>
                 <p>Gestiona las solicitudes de tus clientes.</p>
             </div>
 
@@ -260,7 +260,7 @@ function PanelCitas() {
                 <div className="loading-center"><div className="spinner" /></div>
             ) : citas.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '48px 0' }}>
-                    <p style={{ color: 'var(--text-muted)' }}>No hay citas en este estado.</p>
+                    <p style={{ color: 'var(--text-muted)' }}>No hay reservas en este estado.</p>
                 </div>
             ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -304,7 +304,7 @@ function TarjetaCita({ cita, onConfirmar, onRechazar, onCompletar, cargando }) {
                     </strong>
                 </FilaDato>
                 <FilaDato icon={<MapPin size={13} />} label="Dirección">
-                    {cita.cliente_direccion}
+                    {cita.cliente_direccion || '—'}
                 </FilaDato>
                 <FilaDato icon={<Phone size={13} />} label="Teléfono">
                     <a href={`tel:${cita.cliente_telefono}`} style={{ color: 'var(--accent)' }}>

@@ -79,7 +79,7 @@ export default function RegistroPage() {
                     </div>
                     <h2 style={{ marginBottom: '8px', color: 'var(--success)' }}>¡Cuenta creada!</h2>
                     <p style={{ marginBottom: '28px' }}>
-                        Ya puedes iniciar sesión y agendar tus citas.
+                        Ya puedes iniciar sesión y agendar tus reservas.
                     </p>
                     <button className="btn btn--primary" onClick={() => navigate('/login')}>
                         Iniciar sesión
@@ -124,7 +124,7 @@ export default function RegistroPage() {
                             <User size={32} color="var(--accent)" />
                             <div style={{ textAlign: 'left' }}>
                                 <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Soy un Cliente</h3>
-                                <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: 1.4, marginTop: '4px' }}>Agenda citas y lleva el control de tus cortes.</p>
+                                <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: 1.4, marginTop: '4px' }}>Agenda reservas y lleva el control de tus cortes.</p>
                             </div>
                         </button>
 
@@ -136,7 +136,7 @@ export default function RegistroPage() {
                             <Scissors size={32} color="var(--accent)" />
                             <div style={{ textAlign: 'left' }}>
                                 <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--accent)' }}>Soy un Barbero / Negocio</h3>
-                                <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: 1.4, marginTop: '4px' }}>Crea tu página web, gestiona citas y gana más.</p>
+                                <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: 1.4, marginTop: '4px' }}>Crea tu página web, gestiona reservas y gana más.</p>
                             </div>
                         </button>
                     </div>

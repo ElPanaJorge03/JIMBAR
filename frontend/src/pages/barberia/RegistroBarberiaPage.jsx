@@ -17,6 +17,7 @@ export default function RegistroBarberiaPage() {
 
     const [form, setForm] = useState({
         barberia_nombre: '',
+        barberia_estilo_trabajo: 'AMBOS',
         admin_nombre: '',
         admin_email: '',
         admin_password: '',
@@ -46,6 +47,7 @@ export default function RegistroBarberiaPage() {
         try {
             const { data } = await api.post('/auth/registro-barberia/', {
                 barberia_nombre: form.barberia_nombre.trim(),
+                barberia_estilo_trabajo: form.barberia_estilo_trabajo,
                 admin_nombre: form.admin_nombre.trim(),
                 admin_email: form.admin_email.toLowerCase().trim(),
                 admin_password: form.admin_password,
@@ -165,6 +167,21 @@ export default function RegistroBarberiaPage() {
                                 minLength={3}
                             />
                             <span className="text-xs text-muted">Se usará en tu enlace público automáticamente.</span>
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label">¿Cómo trabajas? *</label>
+                            <select
+                                className="form-input"
+                                name="barberia_estilo_trabajo"
+                                value={form.barberia_estilo_trabajo}
+                                onChange={handleChange}
+                                required
+                            >
+                                <option value="PRESENCIAL">Solo en local (presencial)</option>
+                                <option value="DOMICILIO">Solo a domicilio</option>
+                                <option value="AMBOS">Ambos (local y a domicilio)</option>
+                            </select>
+                            <span className="text-xs text-muted">Define si atiendes en tu local, a domicilio o ambos.</span>
                         </div>
                     </div>
 

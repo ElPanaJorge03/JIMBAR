@@ -99,7 +99,7 @@ export default function DashboardCliente() {
 
             <main className="container" style={{ marginTop: '32px' }}>
                 <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', gap: '16px' }}>
-                    <h2 style={{ margin: 0 }}>Mis Citas</h2>
+                    <h2 style={{ margin: 0 }}>Mis Reservas</h2>
                     <div style={{ display: 'flex', gap: '12px' }}>
                         <button onClick={() => setModalConfig(true)} className="btn btn--outline" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px' }}>
                             <Settings size={16} /> Opciones
@@ -169,7 +169,7 @@ export default function DashboardCliente() {
                         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
                             <div style={{ flex: 1, minWidth: '200px' }}>
                                 <h4 style={{ margin: 0, color: 'var(--accent)', fontSize: '0.95rem' }}>Configura tu experiencia</h4>
-                                <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Instala la app o activa notificaciones para no olvidar tus citas.</p>
+                                <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Instala la app o activa notificaciones para no olvidar tus reservas.</p>
                             </div>
                             <div style={{ display: 'flex', gap: '10px' }}>
                                 {canInstall && (
@@ -206,7 +206,7 @@ export default function DashboardCliente() {
                 ) : citas.length === 0 ? (
                     <div className="card" style={{ textAlign: 'center', padding: '48px 24px' }}>
                         <div style={{ fontSize: '3rem', marginBottom: '16px' }}>💈</div>
-                        <h3>Aún no tienes citas</h3>
+                        <h3>Aún no tienes reservas</h3>
                         <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>
                             Parece que no has agendado ningún servicio todavía o ingresaste con un correo diferente.
                         </p>

@@ -115,7 +115,7 @@ export default function TenantLandingPage() {
                     margin: '0 auto 40px',
                     lineHeight: 1.6,
                 }}>
-                    {barberia.descripcion || "Tu barbero llega donde estás. Agenda tu cita en minutos, sin filas ni esperas."}
+                    {barberia.descripcion || "Reserva en minutos, sin filas ni esperas. Presencial o a domicilio."}
                 </p>
 
                 {/* CTAs principales */}
@@ -132,7 +132,7 @@ export default function TenantLandingPage() {
                         onClick={() => navigate(`/${slug}/agendar`)}
                         style={{ fontSize: '1rem', minHeight: '52px', width: '100%' }}
                     >
-                        Agendar cita ahora
+                        Reservar ahora
                     </button>
 
                     <button
@@ -140,7 +140,7 @@ export default function TenantLandingPage() {
                         onClick={() => navigate('/login?b=' + slug)}
                         style={{ minHeight: '44px', fontSize: '0.9rem', width: '100%' }}
                     >
-                        Mis Citas
+                        Mis Reservas
                     </button>
 
                     {/* Instalar App */}

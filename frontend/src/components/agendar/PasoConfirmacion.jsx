@@ -1,5 +1,5 @@
 /**
- * PasoConfirmacion.jsx — Paso 4: Resumen de la cita creada.
+ * PasoConfirmacion.jsx — Paso 4: Resumen de la reserva creada.
  */
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom';
 
 dayjs.locale('es');
 
-export default function PasoConfirmacion({ seleccion, onNuevaCita }) {
+export default function PasoConfirmacion({ slug, seleccion, onNuevaCita }) {
     const { servicios, fecha, slot, datos, citaCreada } = seleccion;
 
     const fechaFormateada = dayjs(fecha).format('dddd D [de] MMMM [de] YYYY');
@@ -38,13 +38,13 @@ export default function PasoConfirmacion({ seleccion, onNuevaCita }) {
             <p style={{ marginBottom: '32px' }}>
                 Recibirás una confirmación en{' '}
                 <strong style={{ color: 'var(--text-primary)' }}>{datos.correo}</strong>.
-                Si el barbero no responde en 15 minutos, tu cita se confirma automáticamente.
+                Si el barbero no responde en 15 minutos, tu reserva se confirma automáticamente.
             </p>
 
             {/* Resumen */}
             <div className="card" style={{ textAlign: 'left', marginBottom: '24px' }}>
                 <h3 style={{ marginBottom: '16px', color: 'var(--accent)' }}>
-                    Resumen de tu cita
+                    Resumen de tu reserva
                 </h3>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -57,15 +57,15 @@ export default function PasoConfirmacion({ seleccion, onNuevaCita }) {
                     <FilaResumen label="Nombre" value={datos.nombre} />
                     <FilaResumen label="Teléfono" value={datos.telefono} />
                     <FilaResumen label="Correo" value={datos.correo} />
-                    <FilaResumen label="Dirección" value={datos.direccion} />
+                    {datos.direccion && <FilaResumen label="Dirección" value={datos.direccion} />}
                     {datos.notas && <FilaResumen label="Notas" value={datos.notas} />}
                 </div>
             </div>
 
             <div className="alert alert--info" style={{ marginBottom: '24px', textAlign: 'left' }}>
                 <strong>¿Necesitas cancelar?</strong> Puedes hacerlo con más de 2 horas de anticipación.{' '}
-                {citaCreada?.id && (
-                    <Link to={`/cancelar/${citaCreada.id}`} style={{ color: 'var(--accent)', textDecoration: 'underline' }}>
+                {citaCreada?.id && slug && (
+                    <Link to={`/${slug}/cancelar/${citaCreada.id}`} style={{ color: 'var(--accent)', textDecoration: 'underline' }}>
                         Haz clic aquí para cancelar
                     </Link>
                 )}
@@ -73,7 +73,7 @@ export default function PasoConfirmacion({ seleccion, onNuevaCita }) {
             </div>
 
             <button className="btn btn--secondary" onClick={onNuevaCita}>
-                Agendar otra cita
+                Agendar otra reserva
             </button>
         </div>
     );

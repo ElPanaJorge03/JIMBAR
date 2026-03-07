@@ -201,6 +201,7 @@ class BarberiaInfoView(TenantMixin, APIView):
             'imagen_portada': _url(barberia.imagen_portada),
             'telefono': barberia.telefono,
             'direccion': barberia.direccion,
+            'estilo_trabajo': getattr(barberia, 'estilo_trabajo', 'AMBOS'),
         })
 
 
@@ -338,7 +339,7 @@ class CitaCreateView(TenantMixin, generics.CreateAPIView):
             servicios_str = ', '.join(s.nombre for s in cita.servicios.all())
             notify_barberos_de_barberia(
                 barberia,
-                titulo="Nueva cita agendada",
+                titulo="Nueva reserva agendada",
                 cuerpo=f"{cita.cliente_nombre} — {servicios_str} — {cita.fecha.strftime('%d/%m')} {cita.hora_inicio.strftime('%H:%M')}",
                 url="/barbero/citas"
             )
@@ -420,7 +421,7 @@ class CitaCancelarView(TenantMixin, APIView):
         correo = request.data.get('correo')
         if not correo:
             return Response(
-                {'error': 'Debes proporcionar tu correo para cancelar la cita.'},
+                {'error': 'Debes proporcionar tu correo para cancelar la reserva.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -428,13 +429,13 @@ class CitaCancelarView(TenantMixin, APIView):
             cita = Cita.objects.for_tenant(self.get_barberia()).get(id=pk, cliente_correo=correo)
         except Cita.DoesNotExist:
             return Response(
-                {'error': 'Cita no encontrada. Verifica el ID y correo.'},
+                {'error': 'Reserva no encontrada. Verifica el ID y correo.'},
                 status=status.HTTP_404_NOT_FOUND
             )
 
         if cita.estado not in ['PENDIENTE', 'CONFIRMADA']:
             return Response(
-                {'error': f'No puedes cancelar una cita en estado {cita.get_estado_display()}.'},
+                {'error': f'No puedes cancelar una reserva en estado {cita.get_estado_display()}.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -462,8 +463,8 @@ class CitaCancelarView(TenantMixin, APIView):
             from push.notify import notify_barberos_de_barberia
             notify_barberos_de_barberia(
                 cita.barberia,
-                titulo="Cita cancelada",
-                cuerpo=f"{cita.cliente_nombre} canceló su cita del {cita.fecha.strftime('%d/%m')} a las {cita.hora_inicio.strftime('%H:%M')}",
+                titulo="Reserva cancelada",
+                cuerpo=f"{cita.cliente_nombre} canceló su reserva del {cita.fecha.strftime('%d/%m')} a las {cita.hora_inicio.strftime('%H:%M')}",
                 url="/barbero/citas"
             )
         except Exception as e:
@@ -475,14 +476,14 @@ class CitaCancelarView(TenantMixin, APIView):
                 from push.notify import notify_usuario
                 notify_usuario(
                     cita.usuario,
-                    titulo="Cita cancelada",
-                    cuerpo="Tu cita ha sido cancelada correctamente.",
+                    titulo="Reserva cancelada",
+                    cuerpo="Tu reserva ha sido cancelada correctamente.",
                     url="/cliente/citas"
                 )
         except Exception:
             pass
 
-        return Response({'mensaje': 'Cita cancelada exitosamente.'})
+        return Response({'mensaje': 'Reserva cancelada exitosamente.'})
 
 
 # ============================================================
@@ -528,7 +529,7 @@ class CitaEstadoView(TenantMixin, APIView):
         try:
             cita = Cita.objects.for_tenant(self.get_barberia()).get(id=pk)
         except Cita.DoesNotExist:
-            return Response({'error': 'Cita no encontrada.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Reserva no encontrada.'}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = CitaEstadoSerializer(cita, data=request.data, partial=True)
         if serializer.is_valid():
@@ -544,11 +545,11 @@ class CitaEstadoView(TenantMixin, APIView):
                     from push.notify import notify_usuario
                     servicios_str = ', '.join(s.nombre for s in cita.servicios.all())
                     if nuevo_estado == 'CONFIRMADA':
-                        titulo = "Cita confirmada"
-                        cuerpo = f"Tu cita para {servicios_str} el {cita.fecha.strftime('%d/%m')} a las {cita.hora_inicio.strftime('%H:%M')} ha sido confirmada."
+                        titulo = "Reserva confirmada"
+                        cuerpo = f"Tu reserva para {servicios_str} el {cita.fecha.strftime('%d/%m')} a las {cita.hora_inicio.strftime('%H:%M')} ha sido confirmada."
                     else:
-                        titulo = "Cita no disponible"
-                        cuerpo = f"Lamentamos informarte que tu cita para {servicios_str} no pudo ser agendada."
+                        titulo = "Reserva no disponible"
+                        cuerpo = f"Lamentamos informarte que tu reserva para {servicios_str} no pudo ser agendada."
                     
                     notify_usuario(cita.usuario, titulo=titulo, cuerpo=cuerpo, url="/cliente/citas")
                 except Exception as e:

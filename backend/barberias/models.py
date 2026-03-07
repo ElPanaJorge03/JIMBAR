@@ -5,9 +5,21 @@ from django.utils import timezone
 class Barberia(models.Model):
     """
     Representa a un tenant del SaaS. Cada barbería tiene su propio espacio de datos.
+    Soporta barberos presenciales (local), a domicilio o ambos.
     """
+    class EstiloTrabajo(models.TextChoices):
+        PRESENCIAL = 'PRESENCIAL', 'En local (presencial)'
+        DOMICILIO = 'DOMICILIO', 'A domicilio'
+        AMBOS = 'AMBOS', 'Ambos'
+
     nombre = models.CharField(max_length=150)
     slug = models.SlugField(max_length=150, unique=True, help_text="URL de la barbería: jimbar.vercel.app/slug")
+    estilo_trabajo = models.CharField(
+        max_length=20,
+        choices=EstiloTrabajo.choices,
+        default=EstiloTrabajo.AMBOS,
+        help_text="Modo de trabajo: solo local, solo a domicilio, o ambos."
+    )
     descripcion = models.TextField(blank=True)
     from cloudinary.models import CloudinaryField
     logo = CloudinaryField('logo', blank=True, null=True, help_text="Sube un archivo como logo")

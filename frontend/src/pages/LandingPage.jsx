@@ -68,7 +68,7 @@ export default function LandingPage() {
                     margin: '0 auto 48px',
                     lineHeight: 1.6,
                 }}>
-                    Obtén tu propia página web de agendamiento, organiza tus citas automáticamente y profesionaliza tu negocio. Empieza hoy.
+                    Obtén tu propia página web de agendamiento, organiza tus reservas automáticamente y profesionaliza tu negocio. Empieza hoy.
                 </p>
 
                 {/* CTAs principales */}
@@ -149,8 +149,8 @@ export default function LandingPage() {
                             {
                                 id: 4,
                                 icono: <ShieldCheck size={32} color="var(--accent)" />,
-                                titulo: 'Anti-Spam de Citas',
-                                desc: 'Protección para evitar que te llenen la agenda temporalmente con citas falsas.'
+                                titulo: 'Anti-Spam de Reservas',
+                                desc: 'Protección para evitar que te llenen la agenda temporalmente con reservas falsas.'
                             },
                         ].map((beneficio) => (
                             <div key={beneficio.id} style={{

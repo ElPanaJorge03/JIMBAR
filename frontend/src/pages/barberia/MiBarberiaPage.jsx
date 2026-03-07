@@ -31,6 +31,7 @@ export default function MiBarberiaPage() {
                 setForm({
                     nombre: data.nombre || '',
                     descripcion: data.descripcion || '',
+                    estilo_trabajo: data.estilo_trabajo || 'AMBOS',
                     logo: null,
                     imagen_portada: null,
                     telefono: data.telefono || '',
@@ -211,6 +212,27 @@ export default function MiBarberiaPage() {
 
                 {/* Formulario de Edición */}
                 <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+                    {/* Bloque: Modo de trabajo */}
+                    <div style={{ padding: '24px', background: '#111', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '14px' }}>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '1.5px', marginBottom: '20px', fontWeight: 600 }}>
+                            Modo de trabajo
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label">¿Cómo atiendes?</label>
+                            <select
+                                className="form-input"
+                                name="estilo_trabajo"
+                                value={form.estilo_trabajo || 'AMBOS'}
+                                onChange={handleChange}
+                            >
+                                <option value="PRESENCIAL">Solo en local (presencial)</option>
+                                <option value="DOMICILIO">Solo a domicilio</option>
+                                <option value="AMBOS">Ambos (local y a domicilio)</option>
+                            </select>
+                            <span className="text-xs text-muted">Define si pides dirección al cliente al reservar (solo a domicilio o ambos).</span>
+                        </div>
+                    </div>
 
                     {/* Bloque: Identidad */}
                     <div style={{ padding: '24px', background: '#111', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '14px' }}>

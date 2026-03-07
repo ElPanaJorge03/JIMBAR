@@ -17,6 +17,12 @@ class RegistroBarberiaSerializer(serializers.Serializer):
     # Datos de la barbería (Tenant)
     barberia_nombre = serializers.CharField(max_length=150)
     barberia_slug = serializers.SlugField(max_length=150, required=False)
+    barberia_estilo_trabajo = serializers.ChoiceField(
+        choices=['PRESENCIAL', 'DOMICILIO', 'AMBOS'],
+        default='AMBOS',
+        required=False,
+        help_text="Estilo de trabajo: PRESENCIAL (solo en local), DOMICILIO (solo a domicilio), AMBOS."
+    )
 
     def validate_admin_email(self, value):
         if User.objects.filter(email=value).exists():
@@ -50,10 +56,12 @@ class RegistroBarberiaSerializer(serializers.Serializer):
                     counter += 1
 
             # 3. Crear Barbería
+            estilo = (validated_data.get('barberia_estilo_trabajo') or 'AMBOS').upper()
             barberia = Barberia.objects.create(
                 nombre=validated_data['barberia_nombre'],
                 slug=slug,
                 email=validated_data['admin_email'],
+                estilo_trabajo=estilo,
             )
 
             # 4. Crear PerfilUsuario ligado al admin y la barbería
@@ -95,7 +103,7 @@ class BarberiaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Barberia
         fields = [
-            'id', 'nombre', 'slug', 'descripcion',
+            'id', 'nombre', 'slug', 'descripcion', 'estilo_trabajo',
             'logo', 'logo_url', 'imagen_portada', 'imagen_portada_url',
             'telefono', 'email', 'direccion',
             'activo', 'creada_en',

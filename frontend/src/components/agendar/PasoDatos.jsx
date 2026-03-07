@@ -1,11 +1,12 @@
 /**
  * PasoDatos.jsx — Paso 3: El cliente ingresa sus datos personales.
- * Luego envía la solicitud al backend y pasa al paso de confirmación.
+ * Si la barbería atiende a domicilio o ambos, se pide dirección; si es solo presencial, no.
  */
 import { useState } from 'react';
 import { crearCita } from '../../services/citasService';
 
-export default function PasoDatos({ slug, seleccion, onSiguiente, onAnterior }) {
+export default function PasoDatos({ slug, seleccion, estiloTrabajo = 'AMBOS', onSiguiente, onAnterior }) {
+    const requiereDireccion = estiloTrabajo === 'DOMICILIO' || estiloTrabajo === 'AMBOS';
     const [form, setForm] = useState({
         nombre: '',
         telefono: '',
@@ -25,9 +26,12 @@ export default function PasoDatos({ slug, seleccion, onSiguiente, onAnterior }) 
         e.preventDefault();
         setError('');
 
-        // Validación básica en frontend
-        if (!form.nombre.trim() || !form.telefono.trim() || !form.correo.trim() || !form.direccion.trim()) {
+        if (!form.nombre.trim() || !form.telefono.trim() || !form.correo.trim()) {
             setError('Por favor completa todos los campos obligatorios.');
+            return;
+        }
+        if (requiereDireccion && !form.direccion.trim()) {
+            setError('Por favor ingresa la dirección donde deseas recibir el servicio.');
             return;
         }
 
@@ -40,17 +44,15 @@ export default function PasoDatos({ slug, seleccion, onSiguiente, onAnterior }) 
                 cliente_nombre: form.nombre.trim(),
                 cliente_telefono: form.telefono.trim(),
                 cliente_correo: form.correo.trim(),
-                cliente_direccion: form.direccion.trim(),
+                cliente_direccion: requiereDireccion ? form.direccion.trim() : '',
                 notas: form.notas.trim(),
             };
 
             const citaCreada = await crearCita(slug || 'jimbar', payload);
             onSiguiente(form, citaCreada);
         } catch (err) {
-            // El backend devuelve errores de validación en err.response.data
             const data = err.response?.data;
             if (data) {
-                // Puede ser un objeto con campos, o un string
                 const msg = typeof data === 'string'
                     ? data
                     : Object.values(data).flat().join(' ');
@@ -67,7 +69,9 @@ export default function PasoDatos({ slug, seleccion, onSiguiente, onAnterior }) 
         <div>
             <h1 style={{ marginBottom: '6px' }}>Tus datos</h1>
             <p style={{ marginBottom: '28px' }}>
-                El barbero llegará a la dirección que indiques.
+                {requiereDireccion
+                    ? 'Indica la dirección donde deseas recibir el servicio.'
+                    : 'Completa tus datos para confirmar la reserva.'}
             </p>
 
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -116,19 +120,21 @@ export default function PasoDatos({ slug, seleccion, onSiguiente, onAnterior }) 
                     </span>
                 </div>
 
-                <div className="form-group">
-                    <label className="form-label">Dirección *</label>
-                    <textarea
-                        className="form-input"
-                        name="direccion"
-                        value={form.direccion}
-                        onChange={handleChange}
-                        placeholder="Calle 10 #5-20, Barrio Centro"
-                        rows={2}
-                        style={{ resize: 'none', paddingTop: '12px' }}
-                        required
-                    />
-                </div>
+                {requiereDireccion && (
+                    <div className="form-group">
+                        <label className="form-label">Dirección *</label>
+                        <textarea
+                            className="form-input"
+                            name="direccion"
+                            value={form.direccion}
+                            onChange={handleChange}
+                            placeholder="Calle 10 #5-20, Barrio Centro"
+                            rows={2}
+                            style={{ resize: 'none', paddingTop: '12px' }}
+                            required
+                        />
+                    </div>
+                )}
 
                 <div className="form-group">
                     <label className="form-label">Notas adicionales</label>
@@ -157,7 +163,7 @@ export default function PasoDatos({ slug, seleccion, onSiguiente, onAnterior }) 
                                 Enviando...
                             </>
                         ) : (
-                            'Confirmar cita →'
+                            'Confirmar reserva →'
                         )}
                     </button>
                     <button

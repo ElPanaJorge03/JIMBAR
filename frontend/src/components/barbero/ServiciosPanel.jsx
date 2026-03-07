@@ -121,7 +121,7 @@ export default function ServiciosPanel() {
             await eliminarServicio(id);
             await cargar();
         } catch {
-            setError('No se pudo eliminar el servicio. Puede que tenga citas activas.');
+            setError('No se pudo eliminar el servicio. Puede que tenga reservas activas.');
         } finally {
             setEliminando(null);
         }

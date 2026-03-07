@@ -7,12 +7,13 @@
  *  3. Ingresar datos personales
  *  4. Confirmación
  */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import PasoServicio from '../components/agendar/PasoServicio';
 import PasoFechaHora from '../components/agendar/PasoFechaHora';
 import PasoDatos from '../components/agendar/PasoDatos';
 import PasoConfirmacion from '../components/agendar/PasoConfirmacion';
+import { getBarberiaInfo } from '../services/citasService';
 
 const PASOS = ['Servicio', 'Fecha y hora', 'Tus datos', 'Confirmación'];
 
@@ -22,6 +23,7 @@ export default function AgendarPage() {
     const { slug } = useParams();
     const navigate = useNavigate();
     const [paso, setPaso] = useState(0);
+    const [barberiaInfo, setBarberiaInfo] = useState(null);
     const [seleccion, setSeleccion] = useState({
         servicios: [],      // Array de { id, nombre, precio, duracion_minutos }
         fecha: null,        // string 'YYYY-MM-DD'
@@ -29,6 +31,12 @@ export default function AgendarPage() {
         datos: null,        // { nombre, telefono, correo, direccion, notas }
         citaCreada: null,   // respuesta del backend al confirmar
     });
+
+    useEffect(() => {
+        if (slug) {
+            getBarberiaInfo(slug).then(setBarberiaInfo).catch(() => setBarberiaInfo(null));
+        }
+    }, [slug]);
 
     const siguiente = (datos) => {
         setSeleccion((prev) => ({ ...prev, ...datos }));
@@ -99,6 +107,7 @@ export default function AgendarPage() {
                         <PasoDatos
                             slug={slug}
                             seleccion={seleccion}
+                            estiloTrabajo={barberiaInfo?.estilo_trabajo || 'AMBOS'}
                             onSiguiente={(datos, citaCreada) => siguiente({ datos, citaCreada })}
                             onAnterior={anterior}
                         />
