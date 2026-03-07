@@ -70,10 +70,14 @@ export function usePushNotifications() {
                 return;
             }
 
-            // 3. Limpiar suscripción antigua si existe (puede tener clave VAPID diferente)
-            const subExistente = await reg.pushManager.getSubscription();
-            if (subExistente) {
-                await subExistente.unsubscribe();
+            // 3. Limpiar suscripción antigua si existe (puede tener clave VAPID diferente o estar rota)
+            try {
+                const subExistente = await reg.pushManager.getSubscription();
+                if (subExistente) {
+                    await subExistente.unsubscribe();
+                }
+            } catch (unsubErr) {
+                console.warn('Suscripción anterior rota, ignorando...', unsubErr);
             }
 
             // 4. Suscribirse al push con la clave VAPID actual
@@ -84,7 +88,12 @@ export function usePushNotifications() {
                     applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
                 });
             } catch (subErr) {
-                setError(`Error al suscribirse al push: ${subErr.message}`);
+                // Auto-curación: Si hubo un error muy severo de configuración, desregistramos el SW.
+                console.error("Error fatal de push, desregistrando ServiceWorker para limpiar:", subErr);
+                try {
+                    await reg.unregister();
+                } catch (e) { }
+                setError('Error al suscribirse al push. Tu navegador limpió el caché. Por favor recarga la página e intenta otra vez.');
                 return;
             }
 

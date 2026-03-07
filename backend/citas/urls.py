@@ -12,6 +12,7 @@ urlpatterns = [
 
     # ── Área del Cliente Autenticado ───────────────────────────
     path('cliente/citas/', views.CitaClienteListView.as_view(), name='cliente-cita-list'),
+    path('cliente/vincular/', views.VincularBarberiaView.as_view(), name='cliente-vincular'),
 
 
     # ── Públicas ──────────────────────────────────────────────

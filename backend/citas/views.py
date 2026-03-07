@@ -374,6 +374,39 @@ class CitaClienteListView(generics.ListAPIView):
             Q(usuario=user) | Q(cliente_correo=user.email) | Q(cliente_correo=user.username)
         ).prefetch_related('servicios').order_by('-fecha', '-hora_inicio')
 
+class VincularBarberiaView(APIView):
+    """
+    POST /api/cliente/vincular/
+    Permite a un cliente registrado (y logueado) vincularse a una barbería ingresando el enlace (slug).
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        slug_input = request.data.get('barberia_slug', '')
+
+        if not slug_input:
+            return Response({'error': 'Debes proporcionar un enlace o nombre de barbería.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        clean_slug = slug_input.strip().strip('/').split('/')[-1]
+
+        try:
+            barberia = Barberia.objects.get(slug=clean_slug)
+        except Barberia.DoesNotExist:
+            return Response({'error': 'Barbería no encontrada. Verifica el enlace.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Vincular al cliente
+        from barberias.models import PerfilUsuario
+        perfil, created = PerfilUsuario.objects.get_or_create(user=user, defaults={'role': PerfilUsuario.Rol.CLIENTE})
+        perfil.barberia = barberia
+        perfil.save()
+
+        return Response({
+            'mensaje': f'Vinculado exitosamente a {barberia.nombre}.',
+            'barberia_slug': barberia.slug,
+            'barberia_nombre': barberia.nombre
+        })
+
 
 class CitaCancelarView(TenantMixin, APIView):
     """
