@@ -107,12 +107,13 @@ def enviar_correo_nueva_cita(cita_id):
     Notifica al barbero cuando llega una nueva solicitud de cita.
     """
     from .models import Cita
+    from .emails import _email_notificacion_barberia
     try:
         cita = Cita.objects.select_related('barberia').get(id=cita_id)
     except Cita.DoesNotExist:
         return
 
-    email_barbero = cita.barberia.email if cita.barberia and cita.barberia.email else settings.BARBER_EMAIL
+    email_barbero = _email_notificacion_barberia(cita.barberia)
 
     mensaje = (
         f"Nueva solicitud de cita:\n\n"
@@ -189,12 +190,13 @@ def enviar_correo_cancelacion_cliente(cita_id):
     Notifica al barbero cuando un cliente cancela su cita.
     """
     from .models import Cita
+    from .emails import _email_notificacion_barberia
     try:
         cita = Cita.objects.select_related('barberia').get(id=cita_id)
     except Cita.DoesNotExist:
         return
 
-    email_barbero = cita.barberia.email if cita.barberia and cita.barberia.email else settings.BARBER_EMAIL
+    email_barbero = _email_notificacion_barberia(cita.barberia)
 
     mensaje = (
         f"El cliente {cita.cliente_nombre} canceló su cita:\n\n"

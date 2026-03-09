@@ -40,6 +40,29 @@ def _get_cita(cita_id):
         logger.warning(f"Email: cita {cita_id} no encontrada.")
         return None
 
+
+def _email_notificacion_barberia(barberia):
+    """
+    Devuelve el correo al que enviar notificaciones de la barbería.
+    Siempre usa el de la barbería que recibe la reserva, nunca el global (BARBER_EMAIL).
+    1. barberia.email si está definido y no vacío
+    2. correo del primer BARBERIA_ADMIN (o BARBERO) vinculado a la barbería
+    3. solo como último recurso: settings.BARBER_EMAIL
+    """
+    if not barberia:
+        return (getattr(settings, 'BARBER_EMAIL', None) or settings.DEFAULT_FROM_EMAIL or '').strip()
+    email_campo = (barberia.email or '').strip()
+    if email_campo:
+        return email_campo
+    from barberias.models import PerfilUsuario
+    perfil = PerfilUsuario.objects.filter(
+        barberia=barberia,
+        role__in=['BARBERIA_ADMIN', 'BARBERO', 'SUPERADMIN']
+    ).select_related('user').first()
+    if perfil and perfil.user and perfil.user.email:
+        return (perfil.user.email or '').strip()
+    return (getattr(settings, 'BARBER_EMAIL', None) or settings.DEFAULT_FROM_EMAIL or '').strip()
+
 def enviar_correo_recuperar_password(email, nombre, url_reset):
     """Envía un enlace de recuperación de contraseña."""
     asunto = "[Jimbar] Recupera tu contraseña"
@@ -90,7 +113,7 @@ def enviar_correo_nueva_cita(cita_id, origen_url=None):
         "Nueva Reserva Solicitada",
         mensaje_barbero.replace('\n', '<br>')
     )
-    email_barbero = cita.barberia.email if cita.barberia and cita.barberia.email else settings.BARBER_EMAIL
+    email_barbero = _email_notificacion_barberia(cita.barberia)
     _enviar(
         asunto=f"[Jimbar] Nueva reserva — {cita.cliente_nombre}",
         mensaje=mensaje_barbero,
@@ -195,7 +218,7 @@ def enviar_correo_cancelacion_cliente(cita_id):
         f"Hora: {cita.hora_inicio.strftime('%H:%M')}\n"
         f"Teléfono: {cita.cliente_telefono}\n"
     )
-    email_barbero = cita.barberia.email if cita.barberia and cita.barberia.email else settings.BARBER_EMAIL
+    email_barbero = _email_notificacion_barberia(cita.barberia)
     _enviar(
         asunto=f"[Jimbar] Reserva cancelada — {cita.cliente_nombre}",
         mensaje=mensaje,

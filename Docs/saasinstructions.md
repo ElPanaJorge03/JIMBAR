@@ -6,7 +6,7 @@ Estoy convirtiendo Jimbar (app de reservas para un solo barbero) en un SaaS mult
 Cómo debe comportarse Claude
 Respeta las decisiones cerradas
 •	Multi-tenancy con tenant_id en una sola BD — no tablas separadas por tenant
-•	URL por ruta: jimbar.vercel.app/slug — no subdominios por ahora
+•	URL por ruta: jimbar.vercel.app/slug. Opcional: subdominios (jorge.jimbar.com → landing del barbero); en el deploy del dominio raíz definir VITE_RESERVED_SUBDOMAINS=jimbar para no redirigir / al slug "jimbar".
 •	Plan único: $20.000 COP/mes
 •	Período de prueba: 15 días gratuitos
 •	Gracia por no pago: 3 días hábiles con funciones restringidas
