@@ -12,6 +12,7 @@ export default function ClienteLoginPage() {
     const { login } = useAuth();
     const [searchParams] = useSearchParams();
     const nextUrl = searchParams.get('next') || null;
+    const b = searchParams.get('b') || ''; // slug de la barbería (viene desde la landing del barbero)
 
     const [form, setForm] = useState({ email: '', password: '' });
     const [loading, setLoading] = useState(false);
@@ -50,10 +51,14 @@ export default function ClienteLoginPage() {
         }}>
             <div style={{ width: '100%', maxWidth: '380px' }}>
 
-                {/* Volver */}
+                {/* Volver: a la landing del barbero si hay slug, si no atrás en historial o next */}
                 <button
                     className="btn btn--ghost"
-                    onClick={() => navigate(nextUrl || -1)}
+                    onClick={() => {
+                        if (b) navigate(`/${b}`, { replace: true });
+                        else if (nextUrl) navigate(nextUrl, { replace: true });
+                        else navigate(-1);
+                    }}
                     style={{ marginBottom: '24px', paddingLeft: 0 }}
                 >
                     ← Volver
@@ -111,12 +116,12 @@ export default function ClienteLoginPage() {
 
                 <p style={{ textAlign: 'center', marginTop: '20px', fontSize: '0.875rem' }}>
                     ¿No tienes cuenta?{' '}
-                    <Link to={`/registro${searchParams.get('b') ? '?b=' + searchParams.get('b') : ''}`} style={{ color: 'var(--accent)' }}>Regístrate</Link>
+                    <Link to={b ? `/registro?b=${b}` : '/registro'} style={{ color: 'var(--accent)' }}>Regístrate</Link>
                 </p>
 
                 <p style={{ textAlign: 'center', marginTop: '10px', fontSize: '0.875rem' }}>
                     ¿Prefieres no registrarte?{' '}
-                    <Link to="/agendar" style={{ color: 'var(--text-secondary)' }}>Agendar sin cuenta</Link>
+                    <Link to={b ? `/${b}/agendar` : '/'} style={{ color: 'var(--text-secondary)' }}>Agendar sin cuenta</Link>
                 </p>
             </div>
         </div>

@@ -81,7 +81,7 @@ export default function RegistroPage() {
                     <p style={{ marginBottom: '28px' }}>
                         Ya puedes iniciar sesión y agendar tus reservas.
                     </p>
-                    <button className="btn btn--primary" onClick={() => navigate('/login')}>
+                    <button className="btn btn--primary" onClick={() => navigate(b ? `/login?b=${b}` : '/login')}>
                         Iniciar sesión
                     </button>
                 </div>
@@ -103,7 +103,7 @@ export default function RegistroPage() {
                     <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '16px' }}>
                         <button
                             className="btn btn--ghost"
-                            onClick={() => navigate('/login')}
+                            onClick={() => navigate(b ? `/login?b=${b}` : '/login')}
                             style={{ paddingLeft: 0 }}
                         >
                             ← Volver al login
@@ -168,7 +168,7 @@ export default function RegistroPage() {
                     <h1 style={{ marginBottom: '6px' }}>Crear cuenta</h1>
                     <p>
                         Opcional — también puedes{' '}
-                        <Link to="/agendar" style={{ color: 'var(--accent)' }}>agendar sin cuenta</Link>.
+                        <Link to={b ? `/${b}/agendar` : '/'} style={{ color: 'var(--accent)' }}>agendar sin cuenta</Link>.
                     </p>
                 </div>
 

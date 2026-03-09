@@ -39,7 +39,7 @@ export default function ServiciosPanel() {
             const data = await getServiciosBarbero();
             setServicios(data);
         } catch {
-            setError('No se pudieron cargar los servicios.');
+            setError('El sistema se está encendiendo. Espere un momento e intente actualizar la página.');
         } finally {
             setLoading(false);
         }

@@ -21,7 +21,7 @@ export default function PasoServicio({ slug, seleccion = [], onSiguiente }) {
     useEffect(() => {
         getServicios(slug || 'jimbar') // Fallback para dev local sin tenant
             .then(setServicios)
-            .catch(() => setError('No se pudieron cargar los servicios. Intenta de nuevo.'))
+            .catch(() => setError('El sistema se está encendiendo. Espere un momento e intente actualizar la página.'))
             .finally(() => setLoading(false));
     }, [slug]);
 
