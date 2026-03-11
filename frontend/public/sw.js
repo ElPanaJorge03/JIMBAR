@@ -5,7 +5,7 @@
    - Notificaciones Push entrantes
    ============================================================ */
 
-const CACHE_NAME = 'jimbar-v2';
+const CACHE_NAME = 'jimbar-v3';
 
 // ── Instalación ─────────────────────────────────────────────────
 self.addEventListener('install', (event) => {
@@ -13,7 +13,7 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
-    // Limpiar cachés antiguas
+    // Limpiar TODAS las cachés antiguas al activar nueva versión
     event.waitUntil(
         caches.keys().then((names) =>
             Promise.all(
