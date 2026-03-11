@@ -1,8 +1,11 @@
 import threading
+import re
+import logging
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, BasePermission
+from rest_framework.throttling import ScopedRateThrottle
 from django.utils import timezone
 from datetime import datetime, timedelta, time
 from django.db.models import Q
@@ -27,12 +30,26 @@ from .emails import (
     enviar_correo_cancelacion_cliente,
 )
 
+security_logger = logging.getLogger('security')
+
 
 def _en_background(fn, *args):
     """Ejecuta una función en un thread separado para no bloquear el request.
     Necesario aquí porque si falla el email o hace timeout, no crashea la API."""
     t = threading.Thread(target=fn, args=args, daemon=True)
     t.start()
+
+
+class IsBarberoOrAdmin(BasePermission):
+    """Solo permite acceso a BARBERIA_ADMIN, BARBERO o SUPERADMIN."""
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+        if request.user.is_staff or request.user.is_superuser:
+            return True
+        if hasattr(request.user, 'perfil'):
+            return request.user.perfil.role in ('SUPERADMIN', 'BARBERIA_ADMIN', 'BARBERO')
+        return False
 
 
 class TenantMixin:
@@ -58,7 +75,8 @@ class TenantMixin:
             except Exception:
                 pass
 
-        return Barberia.objects.first()
+        from rest_framework.exceptions import PermissionDenied
+        raise PermissionDenied('No se pudo determinar la barbería. Verifica la URL.')
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -74,6 +92,8 @@ class RegistroClienteView(generics.CreateAPIView):
     """
     permission_classes = [AllowAny]
     serializer_class = RegistroClienteSerializer
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'auth'
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -114,6 +134,8 @@ class SolicitarRestaurarPasswordView(APIView):
     Genera un token y envía un correo con el link de restauración.
     """
     permission_classes = [AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'auth'
 
     def post(self, request):
         email = request.data.get('email')
@@ -148,6 +170,8 @@ class RestaurarPasswordView(APIView):
     Recepta el uid, token y la nueva contraseña para aplicarla.
     """
     permission_classes = [AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'auth'
 
     def post(self, request):
         uidb64 = request.data.get('uid')
@@ -315,6 +339,8 @@ class CitaCreateView(TenantMixin, generics.CreateAPIView):
     """
     permission_classes = [AllowAny]
     serializer_class = CitaCreateSerializer
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'booking'
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -495,13 +521,16 @@ class CitaListView(TenantMixin, generics.ListAPIView):
     GET /api/barbero/citas/
     Lista todas las citas. Filtros opcionales: ?estado=PENDIENTE &fecha=YYYY-MM-DD
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsBarberoOrAdmin]
     serializer_class = CitaSerializer
 
     def get_queryset(self):
         queryset = Cita.objects.for_tenant(self.get_barberia()).prefetch_related('servicios').all()
         estado = self.request.query_params.get('estado')
+        ESTADOS_VALIDOS = ['PENDIENTE', 'CONFIRMADA', 'RECHAZADA', 'CANCELADA', 'COMPLETADA']
         if estado:
+            if estado not in ESTADOS_VALIDOS:
+                return Cita.objects.none()
             queryset = queryset.filter(estado=estado)
         fecha = self.request.query_params.get('fecha')
         if fecha:
@@ -511,7 +540,7 @@ class CitaListView(TenantMixin, generics.ListAPIView):
 
 class CitaDetailView(TenantMixin, generics.RetrieveAPIView):
     """GET /api/barbero/citas/{id}/"""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsBarberoOrAdmin]
     serializer_class = CitaSerializer
     
     def get_queryset(self):
@@ -523,7 +552,7 @@ class CitaEstadoView(TenantMixin, APIView):
     PATCH /api/barbero/citas/{id}/estado/
     El barbero confirma, rechaza o marca como completada una cita.
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsBarberoOrAdmin]
 
     def patch(self, request, pk):
         try:
@@ -562,7 +591,7 @@ class CitaEstadoView(TenantMixin, APIView):
 
 class BloqueoDiaListCreateView(TenantMixin, generics.ListCreateAPIView):
     """GET + POST /api/barbero/bloqueos/"""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsBarberoOrAdmin]
     serializer_class = BloqueoDiaSerializer
     
     def get_queryset(self):
@@ -574,7 +603,7 @@ class BloqueoDiaListCreateView(TenantMixin, generics.ListCreateAPIView):
 
 class BloqueoDiaDeleteView(TenantMixin, generics.DestroyAPIView):
     """DELETE /api/barbero/bloqueos/{id}/"""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsBarberoOrAdmin]
     serializer_class = BloqueoDiaSerializer
     
     def get_queryset(self):
@@ -583,7 +612,7 @@ class BloqueoDiaDeleteView(TenantMixin, generics.DestroyAPIView):
 
 class ServicioListCreateView(TenantMixin, generics.ListCreateAPIView):
     """GET + POST /api/<slug>/barbero/servicios/"""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsBarberoOrAdmin]
     serializer_class = ServicioSerializer
 
     def get_queryset(self):
@@ -595,7 +624,7 @@ class ServicioListCreateView(TenantMixin, generics.ListCreateAPIView):
 
 class ServicioDetailView(TenantMixin, generics.RetrieveUpdateDestroyAPIView):
     """GET + PATCH + DELETE /api/<slug>/barbero/servicios/<pk>/"""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsBarberoOrAdmin]
     serializer_class = ServicioSerializer
 
     def get_queryset(self):

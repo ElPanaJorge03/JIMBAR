@@ -5,15 +5,22 @@
    - Notificaciones Push entrantes
    ============================================================ */
 
-const CACHE_NAME = 'jimbar-v1';
+const CACHE_NAME = 'jimbar-v2';
 
-// ── Instalación ────────────────────────────────────────────
+// ── Instalación ─────────────────────────────────────────────────
 self.addEventListener('install', (event) => {
     self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
-    event.waitUntil(self.clients.claim());
+    // Limpiar cachés antiguas
+    event.waitUntil(
+        caches.keys().then((names) =>
+            Promise.all(
+                names.filter((n) => n !== CACHE_NAME).map((n) => caches.delete(n))
+            )
+        ).then(() => self.clients.claim())
+    );
 });
 
 // Requerido por algunos navegadores para la suscripción push
@@ -23,8 +30,12 @@ self.addEventListener('fetch', () => { });
 self.addEventListener('push', (event) => {
     let data = { title: 'Jimbar', body: 'Tienes una nueva notificación', icon: '/favicon.svg' };
     try {
-        data = event.data.json();
-    } catch { /* si no viene JSON, usar defaults */ }
+        const parsed = event.data.json();
+        // Validar que los campos esperados existen y son strings
+        if (typeof parsed.title === 'string' && typeof parsed.body === 'string') {
+            data = parsed;
+        }
+    } catch { /* si no viene JSON válido, usar defaults */ }
 
     event.waitUntil(
         self.registration.showNotification(data.title, {

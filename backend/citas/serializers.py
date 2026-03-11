@@ -1,6 +1,8 @@
 from rest_framework import serializers
+import re
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.utils.html import strip_tags
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import Servicio, Cita, BloqueoDia
 from barberias.models import Barberia
@@ -42,20 +44,35 @@ class CitaCreateSerializer(serializers.ModelSerializer):
         ]
 
     def validate_cliente_nombre(self, value):
-        if len(value.strip()) < 3:
+        value = strip_tags(value).strip()
+        if len(value) < 3:
             raise serializers.ValidationError("Por favor, ingresa un nombre válido más largo.")
+        if len(value) > 150:
+            raise serializers.ValidationError("El nombre es demasiado largo.")
+        if not re.match(r"^[a-zA-Z\s\-'\u00e1\u00e9\u00ed\u00f3\u00fa\u00f1\u00c1\u00c9\u00cd\u00d3\u00da\u00d1]+$", value):
+            raise serializers.ValidationError("El nombre contiene caracteres no permitidos.")
         return value
 
     def validate_cliente_telefono(self, value):
-        if len(value.strip()) < 7:
-            raise serializers.ValidationError("Por favor, ingresa un número de teléfono válido.")
+        clean = re.sub(r'[\s\-\(\)\+]', '', value)
+        if not re.match(r'^[0-9]{7,20}$', clean):
+            raise serializers.ValidationError("Por favor, ingresa un número de teléfono válido (7-20 dígitos).")
+        return clean
+
+    def validate_cliente_correo(self, value):
+        value = strip_tags(value).strip().lower()
+        if not re.match(r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$', value):
+            raise serializers.ValidationError("Por favor, ingresa un correo electrónico válido.")
         return value
 
     def validate_cliente_direccion(self, value):
         if not value or not value.strip():
             return value
-        if len(value.strip()) < 5:
+        value = strip_tags(value).strip()
+        if len(value) < 5:
             raise serializers.ValidationError("Por favor, ingresa una dirección válida más detallada.")
+        if len(value) > 500:
+            raise serializers.ValidationError("La dirección es demasiado larga.")
         return value
 
     def validate(self, data):

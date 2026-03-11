@@ -27,10 +27,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SEGURIDAD
 # ============================================================
 SECRET_KEY = os.getenv('SECRET_KEY', 'clave-insegura-solo-para-desarrollo')
-DEBUG = os.getenv('DEBUG', 'True') == 'True'
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
+DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173').split(',')
 CSRF_TRUSTED_ORIGINS.append('https://jimbar-production.up.railway.app')
+CSRF_TRUSTED_ORIGINS.append('https://jimbar.vercel.app')
 
 
 # ============================================================
@@ -111,7 +112,7 @@ DATABASES = {
 # ============================================================
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', 'OPTIONS': {'min_length': 8}},
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
@@ -152,6 +153,16 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/hour',
+        'user': '1000/hour',
+        'booking': '20/hour',
+        'auth': '10/hour',
+    },
 }
 
 
@@ -166,13 +177,19 @@ SIMPLE_JWT = {
 
 
 # ============================================================
-# CORS — Permite peticiones desde React (localhost:5173 = Vite o frontend en Vercel)
+# CORS — Solo orígenes confiables
 # ============================================================
-CORS_ALLOW_ALL_ORIGINS = True # Para simplificar el despliegue de frontend luego
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',
     'http://127.0.0.1:5173',
+    'https://jimbar.vercel.app',
 ]
+# Agregar orígenes extra desde variable de entorno (para preview deploys, etc)
+_extra_cors = os.getenv('CORS_EXTRA_ORIGINS', '')
+if _extra_cors:
+    CORS_ALLOWED_ORIGINS += [o.strip() for o in _extra_cors.split(',') if o.strip()]
+
+CORS_ALLOW_CREDENTIALS = True
 
 
 # ============================================================
@@ -209,9 +226,16 @@ AUTO_CONFIRM_MINUTES = 15
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
         },
     },
     'root': {
@@ -224,8 +248,30 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': False,
         },
+        'security': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
     },
 }
+
+# ============================================================
+# SEGURIDAD HTTPS / HEADERS (Solo en producción)
+# ============================================================
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = 31536000          # 1 año
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    CSRF_COOKIE_SECURE = True
+    CSRF_COOKIE_HTTPONLY = True
+    X_FRAME_OPTIONS = 'DENY'
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_BROWSER_XSS_FILTER = True
 
 # ============================================================
 # ARCHIVOS ESTÁTICOS Y MEDIA / CLOUDINARY
