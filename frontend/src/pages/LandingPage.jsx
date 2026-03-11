@@ -2,13 +2,15 @@
  * LandingPage.jsx — Landing Page Oficial de Jimbar SaaS.
  * Esta página vende el software a otros barberos para que se unan a la plataforma.
  */
-import { useNavigate, Navigate } from 'react-router-dom';
+import { useNavigate, Navigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Sparkles, CalendarCheck, MapPin, ShieldCheck, Link2, Download } from 'lucide-react';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 
 export default function LandingPage() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const slugFromUrl = searchParams.get('slug');
     const { authenticated, role } = useAuth();
     const { canInstall, triggerInstall } = usePWAInstall();
 
@@ -79,6 +81,21 @@ export default function LandingPage() {
                     maxWidth: '360px',
                     margin: '0 auto',
                 }}>
+                    {slugFromUrl && (
+                        <button
+                            className="btn btn--primary"
+                            onClick={() => navigate(`/${slugFromUrl}/agendar`)}
+                            style={{
+                                fontSize: '1.1rem',
+                                minHeight: '56px',
+                                fontWeight: 600,
+                                background: 'var(--accent)',
+                                marginBottom: '8px',
+                            }}
+                        >
+                            Reservar ahora
+                        </button>
+                    )}
                     <button
                         className="btn btn--primary"
                         onClick={() => navigate('/registro-barberia')}

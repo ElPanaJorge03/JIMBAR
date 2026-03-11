@@ -39,7 +39,7 @@ export default function TenantLandingPage() {
     }
 
     if (error || !barberia) {
-        return <Navigate to="/" replace />;
+        return <Navigate to={`/?slug=${slug}`} replace />;
     }
 
     return (
